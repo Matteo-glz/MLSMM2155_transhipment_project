@@ -542,41 +542,142 @@ class GlobalFlowSolver:
         else:
             print(f"No feasible solution found.\n")
 
-    def export_solution(self, filename='globalflow_solution.csv'):
-        """Export solution to CSV."""
-        rows = []
+    def export_solution(self, filename='globalflow_solution.xlsx'):
+        """Export solution to a multi-sheet Excel workbook."""
 
-        # Export flows > 0
-        for (arc_id, product), var in self.x.items():
-            flow = round(self.prob.getSolution(var), 4)
-            if flow > 0.01:
+        # Build arc metadata lookup: arc_id → dict
+        arc_meta = {}
+        for (src, tgt), info in self.arc_dict.items():
+            arc_meta[info['arc_id']] = {
+                'source': src,
+                'target': tgt,
+                'capacity': info['capacity'],
+                'transport_mode': info['mode'],
+                'distance_km': info['distance'],
+                'fixed_cost': info['fixed_cost'],
+            }
+
+        # ── Per-product flow sheets ───────────────────────────────────────────
+        product_dfs = {}
+        for product in PRODUCTS:
+            rows = []
+            for (arc_id, prod), var in self.x.items():
+                if prod != product:
+                    continue
+                flow = round(self.prob.getSolution(var), 2)
+                if flow <= 0.01:
+                    continue
+                meta = arc_meta.get(arc_id, {})
+                cap = meta.get('capacity', None)
                 rows.append({
-                    'type': 'flow',
-                    'arc_id': arc_id,
-                    'product': product,
-                    'value': flow
+                    'arc_id':         arc_id,
+                    'source':         meta.get('source'),
+                    'target':         meta.get('target'),
+                    'product':        product,
+                    'flow':           flow,
+                    'capacity':       cap,
+                    'utilization_%':  round(flow / cap * 100, 1) if cap else None,
+                    'var_cost':       round(self.var_costs.get((arc_id, product), 0), 4),
+                    'total_cost':     round(self.total_costs.get((arc_id, product), 0), 4),
+                    'flow_cost':      round(flow * self.total_costs.get((arc_id, product), 0), 2),
+                    'transport_mode': meta.get('transport_mode'),
+                    'distance_km':    meta.get('distance_km'),
                 })
+            product_dfs[product] = pd.DataFrame(rows).sort_values('arc_id')
 
-        # Export warehouse decisions (round to clean 0/1)
+        # ── Warehouse sheet ───────────────────────────────────────────────────
+        wh_rows = []
         for wh, var in self.w.items():
-            rows.append({
-                'type': 'warehouse',
-                'warehouse_id': wh,
-                'product': None,
-                'value': round(self.prob.getSolution(var))
+            opened = round(self.prob.getSolution(var))
+            info = self.warehouses[wh]
+            wh_rows.append({
+                'warehouse_id':  wh,
+                'open':          opened,
+                'opening_cost':  info['fixed_cost'],
+                'capacity':      info['capacity'],
+                'total_inflow':  round(sum(
+                    self.prob.getSolution(self.x[(arc_id, prod)])
+                    for (arc_id, prod) in self.x.keys()
+                    for (_, tgt), arc_info in self.arc_dict.items()
+                    if arc_info['arc_id'] == arc_id and tgt == wh
+                ), 2),
+                'utilization_%': None,
             })
+        wh_df = pd.DataFrame(wh_rows)
+        wh_df['utilization_%'] = wh_df.apply(
+            lambda r: round(r['total_inflow'] / r['capacity'] * 100, 1) if r['open'] else None,
+            axis=1
+        )
+        wh_df = wh_df.sort_values(['open', 'warehouse_id'], ascending=[False, True])
 
-        # Export arc activations
+        # ── Arc activation sheet ──────────────────────────────────────────────
+        arc_rows = []
         for arc_id, var in self.y.items():
-            rows.append({
-                'type': 'arc_activation',
-                'arc_id': arc_id,
-                'product': None,
-                'value': round(self.prob.getSolution(var))
+            activated = round(self.prob.getSolution(var))
+            meta = arc_meta.get(arc_id, {})
+            total_flow = round(sum(
+                self.prob.getSolution(self.x[(arc_id, p)])
+                for p in PRODUCTS
+                if (arc_id, p) in self.x
+            ), 2)
+            arc_rows.append({
+                'arc_id':         arc_id,
+                'activated':      activated,
+                'source':         meta.get('source'),
+                'target':         meta.get('target'),
+                'total_flow':     total_flow,
+                'capacity':       meta.get('capacity'),
+                'utilization_%':  round(total_flow / meta['capacity'] * 100, 1) if meta.get('capacity') else None,
+                'fixed_cost':     meta.get('fixed_cost'),
+                'transport_mode': meta.get('transport_mode'),
+                'distance_km':    meta.get('distance_km'),
             })
+        arc_df = pd.DataFrame(arc_rows).sort_values(['activated', 'arc_id'], ascending=[False, True])
 
-        df = pd.DataFrame(rows)
-        df.to_csv(filename, index=False)
+        # ── Summary sheet ─────────────────────────────────────────────────────
+        wh_cost  = sum(self.warehouses[wh]['fixed_cost'] * round(self.prob.getSolution(self.w[wh]))
+                       for wh in self.warehouse_set)
+        arc_cost = sum(
+            arc_meta[arc_id]['fixed_cost'] * round(self.prob.getSolution(self.y[arc_id]))
+            for arc_id in self.y
+        )
+        var_cost = self.objective_value - wh_cost - arc_cost
+
+        summary_rows = [
+            ('Scenario',                    self.scenario),
+            ('Solve Time (s)',               round(self.solve_time, 3)),
+            ('Total Cost ($)',               round(self.objective_value, 2)),
+            ('  Warehouse Opening Cost ($)', round(wh_cost, 2)),
+            ('  Arc Activation Cost ($)',    round(arc_cost, 2)),
+            ('  Variable Transport Cost ($)', round(var_cost, 2)),
+            ('', ''),
+            ('Warehouses Open',  int(wh_df['open'].sum())),
+            ('Warehouses Total', len(wh_df)),
+            ('Arcs Activated (optional)', int(arc_df['activated'].sum())),
+            ('', ''),
+        ]
+        for product in PRODUCTS:
+            delivered = round(sum(
+                self.prob.getSolution(self.x[(arc_id, prod)])
+                for (arc_id, prod) in self.x.keys()
+                if prod == product
+                for (_, tgt), arc_info in self.arc_dict.items()
+                if arc_info['arc_id'] == arc_id and tgt in self.customers
+            ), 2)
+            demand = sum(v for (_, p), v in self.demands.items() if p == product)
+            summary_rows.append((f'Demand Met — {product}', f'{delivered:.0f} / {demand}'))
+
+        summary_df = pd.DataFrame(summary_rows, columns=['Metric', 'Value'])
+
+        # ── Write workbook ────────────────────────────────────────────────────
+        with pd.ExcelWriter(filename, engine='openpyxl') as writer:
+            summary_df.to_excel(writer, sheet_name='Summary', index=False)
+            for product, df in product_dfs.items():
+                sheet_name = product.replace('_', ' ')[:31]
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+            wh_df.to_excel(writer, sheet_name='Warehouses', index=False)
+            arc_df.to_excel(writer, sheet_name='Arc Activations', index=False)
+
         print(f"\nSolution exported to {filename}")
 
 
@@ -596,7 +697,7 @@ if __name__ == "__main__":
         solver.report_solution()
 
         # Export
-        solver.export_solution('globalflow_solution.csv')
+        solver.export_solution('globalflow_solution.xlsx')
 
     except Exception as e:
         print(f"\n{'=' * 80}")

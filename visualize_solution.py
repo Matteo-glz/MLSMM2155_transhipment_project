@@ -1,58 +1,72 @@
 """
 Generate an interactive HTML map of the optimal GlobalFlow solution.
-Uses the same scattergeo Plotly style as globalflow_network_map.html.
+Reads from globalflow_solution.xlsx (multi-sheet export from global.py).
 """
 
 import pandas as pd
 import plotly.graph_objects as go
 
-# ── Load data ─────────────────────────────────────────────────────────────────
+SOLUTION_FILE  = 'globalflow_solution.xlsx'
+INSTANCE_FILE  = 'globalflow_instance.xlsx'
+PRODUCTS       = ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents']
 
-nodes_df   = pd.read_excel('globalflow_instance.xlsx', sheet_name='Nodes')
-arcs_df    = pd.read_excel('globalflow_instance.xlsx', sheet_name='Arcs')
-solution   = pd.read_csv('globalflow_solution.csv')
+# ── Load instance geometry ─────────────────────────────────────────────────────
 
-# Node lookup: id → row
-nodes = {row['node_id']: row for _, row in nodes_df.iterrows()}
+nodes_df = pd.read_excel(INSTANCE_FILE, sheet_name='Nodes')
+nodes    = {row['node_id']: row for _, row in nodes_df.iterrows()}
 
-# Arc lookup: arc_id → (from, to)
-arc_endpoints = {row['arc_id']: (row['from_id'], row['to_id'])
-                 for _, row in arcs_df.iterrows()}
+# ── Load solution sheets ───────────────────────────────────────────────────────
 
-# Solution subsets
-flows       = solution[solution['type'] == 'flow'].copy()
-warehouses  = solution[solution['type'] == 'warehouse'].copy()
-activations = solution[solution['type'] == 'arc_activation'].copy()
+wh_df  = pd.read_excel(SOLUTION_FILE, sheet_name='Warehouses')
+arc_df = pd.read_excel(SOLUTION_FILE, sheet_name='Arc Activations')
 
-flows['value'] = flows['value'].astype(float)
+# Combine per-product flow sheets into one dataframe
+flow_frames = []
+for product in PRODUCTS:
+    sheet = product.replace('_', ' ')
+    try:
+        df = pd.read_excel(SOLUTION_FILE, sheet_name=sheet)
+        flow_frames.append(df)
+    except Exception:
+        pass
+flows = pd.concat(flow_frames, ignore_index=True) if flow_frames else pd.DataFrame()
 
-# Open warehouses
-open_wh = set(warehouses[warehouses['value'] == 1]['warehouse_id'])
+# ── Derived sets ───────────────────────────────────────────────────────────────
 
-# Activated optional arcs (y=1) + always-active arcs that carry flow
-active_arc_ids = set(activations[activations['value'] == 1]['arc_id'])
-arcs_with_flow = set(flows['arc_id'].unique())
-drawn_arcs = active_arc_ids | arcs_with_flow
+open_wh        = set(wh_df[wh_df['open'] == 1]['warehouse_id'])
+active_arc_ids = set(arc_df[arc_df['activated'] == 1]['arc_id'])
 
 # Total flow per arc (sum across products)
-arc_total_flow = flows.groupby('arc_id')['value'].sum().to_dict()
-arc_max_flow = max(arc_total_flow.values()) if arc_total_flow else 1
+arc_total_flow = flows.groupby('arc_id')['flow'].sum().to_dict() if not flows.empty else {}
 
-# ── Helper ────────────────────────────────────────────────────────────────────
+# All arcs to draw: activated optional arcs + always-active arcs that carry flow
+drawn_arc_ids = active_arc_ids | set(arc_total_flow.keys())
 
-def get_coord(node_id, field):
+# Build arc endpoint lookup from flows (source/target columns are present)
+# and fall back to arc_df for optional arcs with 0 flow
+arc_endpoints = {}
+if not flows.empty:
+    for _, row in flows[['arc_id', 'source', 'target']].drop_duplicates().iterrows():
+        arc_endpoints[row['arc_id']] = (row['source'], row['target'])
+for _, row in arc_df[['arc_id', 'source', 'target']].drop_duplicates().iterrows():
+    if row['arc_id'] not in arc_endpoints:
+        arc_endpoints[row['arc_id']] = (row['source'], row['target'])
+
+# ── Helper ─────────────────────────────────────────────────────────────────────
+
+def coord(node_id, field):
     return nodes[node_id][field] if node_id in nodes else None
 
-# ── Build arc traces (one line per arc with flow) ─────────────────────────────
+# ── Arc traces ─────────────────────────────────────────────────────────────────
 
 arc_lats, arc_lons, arc_texts = [], [], []
 
-for arc_id in drawn_arcs:
+for arc_id in drawn_arc_ids:
     if arc_id not in arc_endpoints:
         continue
     src, tgt = arc_endpoints[arc_id]
-    lat0, lon0 = get_coord(src, 'latitude'), get_coord(src, 'longitude')
-    lat1, lon1 = get_coord(tgt, 'latitude'), get_coord(tgt, 'longitude')
+    lat0, lon0 = coord(src, 'latitude'), coord(src, 'longitude')
+    lat1, lon1 = coord(tgt, 'latitude'), coord(tgt, 'longitude')
     if None in (lat0, lon0, lat1, lon1):
         continue
     flow = arc_total_flow.get(arc_id, 0)
@@ -70,38 +84,39 @@ arc_trace = go.Scattergeo(
     hoverinfo='skip',
 )
 
-# ── Node traces by type ───────────────────────────────────────────────────────
+# ── Node traces ────────────────────────────────────────────────────────────────
 
 type_config = {
-    'SU': dict(label='Supplier',            color='#FF5722', symbol='square',   size=10),
-    'HUB': dict(label='International Hub',  color='#9C27B0', symbol='diamond',  size=14),
-    'WH': dict(label='Regional Warehouse',  color='#4CAF50', symbol='circle',   size=9),
-    'CU': dict(label='Customer',            color='#607D8B', symbol='circle',   size=7),
+    'SU':  dict(label='Supplier',           color='#FF5722', symbol='square',  size=10),
+    'HUB': dict(label='International Hub',  color='#9C27B0', symbol='diamond', size=14),
+    'WH':  dict(label='Regional Warehouse', color='#4CAF50', symbol='circle',  size=9),
+    'CU':  dict(label='Customer',           color='#607D8B', symbol='circle',  size=7),
 }
 
 node_traces = []
 for ntype, cfg in type_config.items():
     subset = nodes_df[nodes_df['type'] == ntype]
-    lats, lons, texts = [], [], []
+    lats, lons, texts, colors = [], [], [], []
+
     for _, row in subset.iterrows():
-        nid = row['node_id']
+        nid   = row['node_id']
         label = row['name']
-        extra = ''
+
         if ntype == 'WH':
-            extra = ' ✓ OPEN' if nid in open_wh else ' (closed)'
-        texts.append(f"<b>{nid}</b> — {label}{extra}")
+            wh_row  = wh_df[wh_df['warehouse_id'] == nid]
+            opened  = bool(wh_row.iloc[0]['open']) if not wh_row.empty else False
+            inflow  = wh_row.iloc[0]['total_inflow'] if not wh_row.empty else 0
+            cap     = wh_row.iloc[0]['capacity']     if not wh_row.empty else '?'
+            util    = wh_row.iloc[0]['utilization_%'] if not wh_row.empty else None
+            status  = f' ✓ OPEN  {inflow:.0f}/{cap} ({util:.1f}%)' if opened and util is not None else (' ✓ OPEN' if opened else ' (closed)')
+            colors.append(cfg['color'] if opened else '#BDBDBD')
+        else:
+            status = ''
+            colors.append(cfg['color'])
+
+        texts.append(f"<b>{nid}</b> — {label}{status}")
         lats.append(row['latitude'])
         lons.append(row['longitude'])
-
-    # Dim closed warehouses
-    if ntype == 'WH':
-        marker_colors = [
-            cfg['color'] if nodes_df[nodes_df['node_id'] == r['node_id']].iloc[0]['node_id'] in open_wh
-            else '#BDBDBD'
-            for _, r in subset.iterrows()
-        ]
-    else:
-        marker_colors = cfg['color']
 
     node_traces.append(go.Scattergeo(
         lat=lats,
@@ -109,11 +124,11 @@ for ntype, cfg in type_config.items():
         mode='markers+text',
         marker=dict(
             size=cfg['size'],
-            color=marker_colors,
+            color=colors,
             symbol=cfg['symbol'],
             line=dict(width=1, color='white'),
         ),
-        text=[nodes_df[nodes_df['node_id'] == r['node_id']].iloc[0]['node_id'] for _, r in subset.iterrows()],
+        text=[r['node_id'] for _, r in subset.iterrows()],
         textposition='top center',
         textfont=dict(size=8),
         name=cfg['label'],
@@ -121,13 +136,23 @@ for ntype, cfg in type_config.items():
         hoverinfo='text',
     ))
 
-# ── Layout ────────────────────────────────────────────────────────────────────
+# ── Layout ─────────────────────────────────────────────────────────────────────
+
+# Pull scenario name from Summary sheet if available
+try:
+    summary_df = pd.read_excel(SOLUTION_FILE, sheet_name='Summary')
+    scenario_row = summary_df[summary_df['Metric'] == 'Scenario']
+    scenario = scenario_row.iloc[0]['Value'] if not scenario_row.empty else 'Baseline'
+    cost_row = summary_df[summary_df['Metric'] == 'Total Cost ($)']
+    total_cost = f"  |  Total Cost: ${float(cost_row.iloc[0]['Value']):,.0f}" if not cost_row.empty else ''
+except Exception:
+    scenario, total_cost = 'Baseline', ''
 
 fig = go.Figure(data=[arc_trace] + node_traces)
 
 fig.update_layout(
     title=dict(
-        text='GlobalFlow — Optimal Network Solution (Baseline)',
+        text=f'GlobalFlow — Optimal Network Solution ({scenario}){total_cost}',
         x=0.5,
         font=dict(size=18),
     ),

@@ -32,6 +32,22 @@
     \quad Remarque: $A_{\text{fixed}} \cup A_{\text{always}} = A$ et $A_{\text{fixed}} \cap A_{\text{always}} = \emptyset$
 \end{itemize}
 
+\subsection{Sous-ensembles de fournisseurs par produit}
+
+Chaque fournisseur ne produit qu'un seul type de produit. On définit donc :
+
+\begin{itemize}
+    \item $S^p \subset S$ : l'ensemble des fournisseurs qui produisent le produit $p \in P$.
+    \quad Formellement : $S^p = \{ s \in S \mid Sup_s^p > 0 \}$.
+    \item Les ensembles $S^p$ forment une partition de $S$ :
+    $\displaystyle\bigcup_{p \in P} S^p = S$ \quad et \quad $S^p \cap S^{p'} = \emptyset \; \forall p \neq p'$.
+\end{itemize}
+
+\noindent Dans les données :
+$S^A = \{S1, S2, S3\}$,\quad
+$S^B = \{S4, S5, S6\}$,\quad
+$S^C = \{S7, S8, S9\}$.
+
 \subsection{Arcs par nœud ou type de nœud}
 
 \begin{itemize}
@@ -85,6 +101,9 @@ Chaque arc $a \in A$ est associé avec :
 
 \begin{itemize}
     \item $x_a^p \ge 0$ : Quantité de produit $p$ passant par l'arc $a$ (unités).
+    La variable $x_a^p$ n'est définie que si l'arc $a$ n'est pas un arc fournisseur,
+    ou si $a$ est un arc fournisseur avec $i(a) \in S^p$ (le fournisseur produit $p$).
+    Formellement : $x_a^p = 0$ est imposé implicitement lorsque $i(a) \in S$ et $i(a) \notin S^p$.
 
     \item $openWarehouse_w \in \{0, 1\}$ : Variable binaire indiquant si l'entrepôt $w$ est ouvert.
     \begin{equation*}
@@ -116,10 +135,21 @@ Pour chaque produit $p$ et chaque client $c$, la somme des flux entrants doit é
 \end{equation}
 
 \noindent\textbf{(C2) Contrainte de production :}
-La somme des flux sortants d'un fournisseur $s$ doit égaler sa production disponible.
+La somme des flux sortants d'un fournisseur $s$ pour le produit $p$ qu'il produit ne peut dépasser
+sa production disponible. La contrainte est définie uniquement pour les paires $(s, p)$ telles que
+$s \in S^p$ (le fournisseur produit ce produit).
 \begin{equation}
-    \sum_{a \in S_{\text{source}}^s} x_a^p = Sup_s^p \quad \forall s \in S, \forall p \in P \label{eq:supply}
+    \sum_{a \in S_{\text{source}}^s} x_a^p \le Sup_s^p \quad \forall p \in P,\; \forall s \in S^p
+    \label{eq:supply}
 \end{equation}
+
+\noindent\textit{Remarque :} L'inégalité ($\le$) au lieu de l'égalité ($=$) est justifiée par
+deux raisons : (i) les données présentent de légères asymétries entre offre totale et demande totale
+(e.g.\ $\sum_{s \in S^B} Sup_s^B = 2223 > 2222 = \sum_c Dem_c^B$), et (ii) la combinaison de
+la contrainte (C1) d'égalité sur la demande et des contraintes de conservation du flux (C6)-(C7)
+garantit que tout flux sortant d'un fournisseur atteint effectivement un client.
+De plus, la restriction $s \in S^p$ (via les sous-ensembles $S^p$) empêche tout flux
+fantôme de produits qu'un fournisseur ne produit pas.
 
 \subsection{Capacités et activation des arcs}
 
@@ -205,6 +235,21 @@ les coûts fixes d'activation d'arcs, et les coûts variables de transport (incl
     \item \textbf{Entrepôts capacités et activables :} Les entrepôts régionaux sont activables via
     la variable binaire $openWarehouse_w$. Un entrepôt ne peut recevoir du flux que s'il est ouvert,
     et l'inflow total est limité par sa capacité.
+
+    \item \textbf{Sous-ensembles de fournisseurs par produit ($S^p$) :}
+    Chaque fournisseur ne produisant qu'un seul type de produit, on définit $S^p \subset S$
+    comme l'ensemble des fournisseurs de $p$. La contrainte (C2) est restreinte à $s \in S^p$
+    et les variables de flux $x_a^p$ ne sont pas créées pour les arcs fournisseurs incompatibles
+    ($i(a) \in S \setminus S^p$). Ceci évite les flux fantômes : sans cette restriction,
+    le solveur pourrait faire transiter du produit $p$ depuis un fournisseur qui ne le produit pas,
+    contournant ainsi les contraintes d'offre.
+
+    \item \textbf{Contrainte de production en inégalité :}
+    La contrainte (C2) utilise $\le$ plutôt que $=$. En présence d'un léger déséquilibre
+    offre/demande ($\sum_{s \in S^p} Sup_s^p \ge \sum_c Dem_c^p$), l'égalité rendrait
+    le modèle infaisable. La combinaison de (C1) (demande exacte), (C6)-(C7) (conservation)
+    et (C2) ($\le$) garantit que la production est utilisée au juste niveau pour satisfaire
+    la demande, sans surplus bloqué dans le réseau.
 
 \end{itemize}
 
