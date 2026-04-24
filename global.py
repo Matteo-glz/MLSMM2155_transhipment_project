@@ -58,6 +58,10 @@ class GlobalFlowSolver:
         self.warehouse_set = set()
         self.customers = set()
 
+        # Product-specific supplier subsets
+        self.suppliers_by_product = {}  # product -> set of suppliers
+        self.supplier_products = {}     # supplier -> set of products they produce
+
         # Arc subsets
         self.arc_ids_fixed = set()  # Arcs with activation cost
         self.arc_ids_always = set()  # Always-active arcs
@@ -93,18 +97,18 @@ class GlobalFlowSolver:
         tariffs_df = pd.read_excel(self.excel_file, sheet_name='TariffZones')
 
         # Build node dictionary
-        self.nodes = {row['Id']: row for _, row in nodes_df.iterrows()}
+        self.nodes = {row['node_id']: row for _, row in nodes_df.iterrows()}
 
         # Identify node sets
         self.suppliers = set(suppliers_df['supplier_id'].values)
-        self.hubs = set(nodes_df[nodes_df['type'] == 'HUB']['Id'].values)
+        self.hubs = set(nodes_df[nodes_df['type'] == 'HUB']['node_id'].values)
         self.warehouse_set = set(warehouses_df['warehouse_id'].values)
         self.customers = set(demand_df['customer_id'].unique())
 
         # Build arc dictionary: key = (source, target)
         for _, row in arcs_df.iterrows():
-            source = row['Source']
-            target = row['Target']
+            source = row['from_id']
+            target = row['to_id']
             key = (source, target)
             arc_id = row['arc_id']
 
@@ -170,6 +174,8 @@ class GlobalFlowSolver:
             product = row['product']
             sup = row['supply']
             self.supplies[(supplier, product)] = sup
+            self.suppliers_by_product.setdefault(product, set()).add(supplier)
+            self.supplier_products.setdefault(supplier, set()).add(product)
 
         # Build warehouse parameters dictionary: key = warehouse_id
         for _, row in warehouses_df.iterrows():
@@ -203,18 +209,25 @@ class GlobalFlowSolver:
         # CREATE DECISION VARIABLES
         # ====================================================================
 
+        # Build arc_id -> source node lookup
+        arc_source = {info['arc_id']: src for (src, tgt), info in self.arc_dict.items()}
+
         # (C8) Flow variables: x[(arc_id, product)]
-        for (arc_id, product), cost in self.total_costs.items():
+        # For supplier arcs, only create variables for products that supplier produces
+        for (arc_id, product) in self.total_costs.keys():
+            src = arc_source.get(arc_id)
+            if src in self.suppliers and product not in self.supplier_products.get(src, set()):
+                continue
             var_name = f'x_{arc_id}_{product}'
-            self.x[(arc_id, product)] = self.prob.continuous(name=var_name, lb=0)
+            self.x[(arc_id, product)] = self.prob.addVariable(name=var_name, lb=0, vartype=xp.continuous)
 
         # Warehouse opening variables: w[warehouse_id]
         for wh in self.warehouse_set:
-            self.w[wh] = self.prob.binary(name=f'w_{wh}')
+            self.w[wh] = self.prob.addVariable(name=f'w_{wh}', vartype=xp.binary)
 
         # (C9) Arc activation variables: y[arc_id] (ONLY for A_fixed)
         for arc_id in self.arc_ids_fixed:
-            self.y[arc_id] = self.prob.binary(name=f'y_{arc_id}')
+            self.y[arc_id] = self.prob.addVariable(name=f'y_{arc_id}', vartype=xp.binary)
 
         print(f"  ✓ Variables created:")
         print(f"    - Flow variables (x): {len(self.x)}")
@@ -246,7 +259,7 @@ class GlobalFlowSolver:
             cost = self.total_costs[(arc_id, product)]
             obj += cost * var
 
-        self.prob.setObjective(obj, sense=xp.Minimize)
+        self.prob.setObjective(obj, sense=xp.minimize)
         print(f"  ✓ Objective function set (minimize)")
 
         # ====================================================================
@@ -272,17 +285,14 @@ class GlobalFlowSolver:
                 )
 
                 self.prob.addConstraint(
-                    inflow == self.demands[(customer, product)],
-                    name=f'C1_demand_{customer}_{product}'
+                    xp.constraint(inflow == self.demands[(customer, product)], name=f'C1_demand_{customer}_{product}')
                 )
                 constraint_count += 1
 
-        # (C2) Supply availability at suppliers
-        for supplier in self.suppliers:
-            for product in PRODUCTS:
-                if (supplier, product) not in self.supplies:
-                    continue
-
+        # (C2) Supply availability — one constraint per (product, supplier) pair
+        # Only suppliers in suppliers_by_product[p] can ship product p
+        for product, sup_set in self.suppliers_by_product.items():
+            for supplier in sup_set:
                 outflow = xp.Sum(
                     self.x[(arc_id, product)]
                     for (arc_id, prod) in self.x.keys()
@@ -290,10 +300,8 @@ class GlobalFlowSolver:
                     for (src, tgt), arc_info in self.arc_dict.items()
                     if arc_info['arc_id'] == arc_id and src == supplier
                 )
-
                 self.prob.addConstraint(
-                    outflow == self.supplies[(supplier, product)],
-                    name=f'C2_supply_{supplier}_{product}'
+                    xp.constraint(outflow <= self.supplies[(supplier, product)], name=f'C2_supply_{supplier}_{product}')
                 )
                 constraint_count += 1
 
@@ -313,8 +321,7 @@ class GlobalFlowSolver:
                     break
 
             self.prob.addConstraint(
-                flow_sum <= capacity,
-                name=f'C3_arc_cap_always_{arc_id}'
+                xp.constraint(flow_sum <= capacity, name=f'C3_arc_cap_always_{arc_id}')
             )
             constraint_count += 1
 
@@ -334,8 +341,7 @@ class GlobalFlowSolver:
                     break
 
             self.prob.addConstraint(
-                flow_sum <= capacity * self.y[arc_id],
-                name=f'C4_arc_cap_fixed_{arc_id}'
+                xp.constraint(flow_sum <= capacity * self.y[arc_id], name=f'C4_arc_cap_fixed_{arc_id}')
             )
             constraint_count += 1
 
@@ -351,8 +357,7 @@ class GlobalFlowSolver:
             capacity = self.warehouses[warehouse]['capacity']
 
             self.prob.addConstraint(
-                inflow <= capacity * self.w[warehouse],
-                name=f'C5_wh_cap_{warehouse}'
+                xp.constraint(inflow <= capacity * self.w[warehouse], name=f'C5_wh_cap_{warehouse}')
             )
             constraint_count += 1
 
@@ -376,8 +381,7 @@ class GlobalFlowSolver:
                 )
 
                 self.prob.addConstraint(
-                    inflow == outflow,
-                    name=f'C6_flow_conserv_wh_{warehouse}_{product}'
+                    xp.constraint(inflow == outflow, name=f'C6_flow_conserv_wh_{warehouse}_{product}')
                 )
                 constraint_count += 1
 
@@ -401,8 +405,7 @@ class GlobalFlowSolver:
                 )
 
                 self.prob.addConstraint(
-                    inflow == outflow,
-                    name=f'C7_flow_conserv_hub_{hub}_{product}'
+                    xp.constraint(inflow == outflow, name=f'C7_flow_conserv_hub_{hub}_{product}')
                 )
                 constraint_count += 1
 
@@ -431,7 +434,7 @@ class GlobalFlowSolver:
 
     def report_solution(self):
         """Print detailed solution report."""
-        status = self.prob.getProbStatus()
+        status = self.prob.attributes.solstatus
 
         print(f"\n{'=' * 80}")
         print(f"SOLUTION REPORT")
@@ -439,13 +442,13 @@ class GlobalFlowSolver:
 
         print(f"Status: {status}")
 
-        if status == xp.SolStatus.Optimal or status == xp.SolStatus.Feasible:
-            self.objective_value = self.prob.getObjective()
+        if status == xp.SolStatus.OPTIMAL or status == xp.SolStatus.FEASIBLE:
+            self.objective_value = self.prob.getObjVal()
             print(f"Objective Value: ${self.objective_value:,.2f}\n")
 
             # Decompose objective value
             wh_cost = sum(
-                self.warehouses[wh]['fixed_cost'] * self.w[wh].getSolution()
+                self.warehouses[wh]['fixed_cost'] * self.prob.getSolution(self.w[wh])
                 for wh in self.warehouse_set
             )
 
@@ -455,7 +458,7 @@ class GlobalFlowSolver:
                     # Find fixed cost
                     for (src, tgt), arc_info in self.arc_dict.items():
                         if arc_info['arc_id'] == arc_id:
-                            arc_cost += arc_info['fixed_cost'] * self.y[arc_id].getSolution()
+                            arc_cost += arc_info['fixed_cost'] * self.prob.getSolution(self.y[arc_id])
                             break
 
             var_cost = self.objective_value - wh_cost - arc_cost
@@ -471,7 +474,7 @@ class GlobalFlowSolver:
             print(f"Open Warehouses:")
             open_warehouses = []
             for wh in self.warehouse_set:
-                if self.w[wh].getSolution() > 0.99:
+                if self.prob.getSolution(self.w[wh]) > 0.99:
                     open_warehouses.append(wh)
                     cost = self.warehouses[wh]['fixed_cost']
                     print(f"  {wh}: ${cost:,.2f}")
@@ -486,7 +489,7 @@ class GlobalFlowSolver:
             for (src, tgt), arc_info in self.arc_dict.items():
                 arc_id = arc_info['arc_id']
                 total_flow = sum(
-                    self.x[(arc_id, product)].getSolution()
+                    self.prob.getSolution(self.x[(arc_id, product)])
                     for product in PRODUCTS
                     if (arc_id, product) in self.x
                 )
@@ -513,15 +516,18 @@ class GlobalFlowSolver:
                 print(f"  ... and {len(arc_flows) - 30} more arcs with flow")
             print()
 
-            # Report product flows by source
-            print(f"Total Flow by Product:")
+            # Report demand delivered to customers (flows on arcs ending at a customer)
+            print(f"Demand Delivered by Product:")
             for product in PRODUCTS:
-                total = sum(
-                    self.x[(arc_id, product)].getSolution()
+                delivered = sum(
+                    self.prob.getSolution(self.x[(arc_id, product)])
                     for (arc_id, prod) in self.x.keys()
                     if prod == product
+                    for (_, tgt), arc_info in self.arc_dict.items()
+                    if arc_info['arc_id'] == arc_id and tgt in self.customers
                 )
-                print(f"  {product:30s}: {total:>7.1f} units")
+                demand_total = sum(v for (_, p), v in self.demands.items() if p == product)
+                print(f"  {product:30s}: {delivered:>7.1f} / {demand_total:>7.1f} units")
             print()
 
             # Get LP relaxation info
@@ -542,7 +548,7 @@ class GlobalFlowSolver:
 
         # Export flows > 0
         for (arc_id, product), var in self.x.items():
-            flow = var.getSolution()
+            flow = round(self.prob.getSolution(var), 4)
             if flow > 0.01:
                 rows.append({
                     'type': 'flow',
@@ -551,13 +557,13 @@ class GlobalFlowSolver:
                     'value': flow
                 })
 
-        # Export warehouse decisions
+        # Export warehouse decisions (round to clean 0/1)
         for wh, var in self.w.items():
             rows.append({
                 'type': 'warehouse',
                 'warehouse_id': wh,
                 'product': None,
-                'value': var.getSolution()
+                'value': round(self.prob.getSolution(var))
             })
 
         # Export arc activations
@@ -566,7 +572,7 @@ class GlobalFlowSolver:
                 'type': 'arc_activation',
                 'arc_id': arc_id,
                 'product': None,
-                'value': var.getSolution()
+                'value': round(self.prob.getSolution(var))
             })
 
         df = pd.DataFrame(rows)
