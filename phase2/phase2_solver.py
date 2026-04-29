@@ -29,9 +29,9 @@ EXCEL_FILE = 'data/globalflow_instance.xlsx'
 BASELINE_SOLUTION = 'phase1/results/baseline_solution.xlsx'
 
 SCENARIOS = ['ArcCosts_T1', 'ArcCosts_T2', 'ArcCosts_T3',
-             #'ArcCosts_S1', 
+             'ArcCosts_S1', 
              'ArcCosts_S2'
-             #, 'ArcCosts_S3'
+             , 'ArcCosts_S3'
              ]
 
 STRATEGIES = ['R', 'A', 'F']
