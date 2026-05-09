@@ -168,6 +168,7 @@ def solve_network(inst, strategy, baseline_open_wh=None, baseline_active_arcs=No
     prob = xp.problem()
     prob.setControl('MAXTIME', MAX_SOLVE_TIME)
     prob.setControl('OUTPUTLOG', 0)
+    prob.setControl('MIPRELSTOP', 1e-7)
 
     arc_src       = inst['arc_src']
     arc_tgt       = inst['arc_tgt']
