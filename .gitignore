@@ -1,0 +1,31 @@
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+
+# ── LaTeX build artifacts ─────────────────────────────────────────────────────
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# ── Compiled PDFs (generated from .tex sources) ───────────────────────────────
+*.pdf
+
+# ── Excel result outputs ──────────────────────────────────────────────────────
+*.xlsx
+# Keep the shared input dataset
+!data/globalflow_instance.xlsx
+
+# ── Excel temporary lock files ────────────────────────────────────────────────
+~$*.xlsx
+
+# ── HTML map outputs ──────────────────────────────────────────────────────────
+*.html

@@ -1,0 +1,76 @@
+\begin{titlepage}
+    \centering
+    \thispagestyle{empty} % Supprime le numéro de page
+    \vspace*{-1.5cm} % Remonte les logos au maximum
+    
+    % --- Logos ---
+    \begin{minipage}{0.85\textwidth}
+        \includegraphics[height=1.5cm]{page_de_garde/UCLouvain_FUCaM_Mons.png} 
+        \hfill
+        \includegraphics[height=1.5cm]{page_de_garde/Louvain_School_of_Management_logo.svg.png}
+    \end{minipage}
+
+    \vspace{0.8cm}
+
+    % --- Bloc Principal Ocre (Grand Carré) ---
+    \begin{tcolorbox}[
+        enhanced,
+        colback=uclgold,
+        colframe=uclgold,
+        width=16.55cm,
+        height=21cm, % Ajusté pour éviter le débordement
+        arc=0pt, outer arc=0pt,
+        boxsep=0pt, left=1cm, right=1cm, top=1.2cm
+    ]
+        
+        % Institution : Arial 20
+        {\fontfamily{phv}\selectfont \fontsize{20}{24}\selectfont \color{white} \textbf{Louvain School of Management}}
+        
+        \vspace{2cm}
+        
+        % --- Petit Rectangle Jaune (Bloc Titre) ---
+        \begin{tcolorbox}[
+            enhanced,
+            colback=ucllight,
+            colframe=ucllight,
+            width=18.34cm,
+            height=9cm,
+            enlarge left by=-2.5cm, 
+            arc=0pt, outer arc=0pt,
+            boxsep=15pt,
+            valign=center
+        ]
+            \centering
+            {\fontfamily{phv}\selectfont \color{white}
+                % Titre : Arial 24
+                {\fontsize{24}{28}\selectfont \textbf{GlobalFlow Under Pressure }} \\[1cm]
+                {/\fontsize{20}{24}\selectfont \textit{Network Design, Disruption, and Resilience in a Multi-Commodity Logistics Network}} \\[0.5cm]
+                % Sous-titre : Arial 20
+                {\fontsize{20}{24}\selectfont MLSMM2155 - Quantitative Decision Making}
+            }
+        \end{tcolorbox}
+
+        \vfill % Pousse le bloc vers le bas autant que possible
+        \bigskip
+        \bigskip
+        \bigskip
+        \bigskip
+        \bigskip
+        \bigskip
+        \bigskip
+        \bigskip
+        % --- Bloc des informations : Arial 12, interligne serré ---
+
+        \begin{flushleft}
+            {\fontfamily{phv}\selectfont \fontsize{12}{13}\selectfont \color{white} \setstretch{1.0}
+                \begin{tabular}{l}
+                    Autors : GALIZIA Matteo and SIMOENS Mathias\\
+                    Professor : CATANZARO Daniele\\
+                    Academic Year : 2025 - 2026 \\
+                    LSM Master 1 : Business Engineering - Business Analytics
+                \end{tabular}
+            }
+        \end{flushleft}
+        % Suppression du vspace ici pour coller au plus bas
+    \end{tcolorbox}
+\end{titlepage}
