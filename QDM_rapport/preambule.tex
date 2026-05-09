@@ -1,0 +1,39 @@
+ %!TEX root = main.tex
+% --- Configuration linguistique et encodage ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% --- Mise en page ---
+\usepackage{booktabs}   % Pour des tableaux élégants
+\usepackage{float}      % Pour forcer le placement des images avec [H]
+\usepackage{caption}    % Pour personnaliser les légendes
+
+% --- Graphiques et images ---
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{xcolor}     % Pour utiliser des couleurs
+
+% --- Maths ---
+\usepackage{amsmath}    % Pour les équations
+\usepackage{amsfonts}   % Pour les symboles mathématiques
+
+% --- Liens et navigation ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={GlobalFlow Under Pressure},
+}
+
+\captionsetup{font=small, labelfont=bf, textfont=it}
+
+% --- Page de garde ---
+\usepackage[most]{tcolorbox}
+\usepackage{setspace}
+
+% Définition obligatoire des couleurs pour la page de garde
+\definecolor{uclgold}{HTML}{C5B36A}
+\definecolor{ucllight}{HTML}{E2E86B}

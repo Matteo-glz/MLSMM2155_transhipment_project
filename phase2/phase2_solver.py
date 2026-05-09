@@ -29,9 +29,9 @@ EXCEL_FILE = 'data/globalflow_instance.xlsx'
 BASELINE_SOLUTION = 'phase1/results/baseline_solution.xlsx'
 
 SCENARIOS = ['ArcCosts_T1', 'ArcCosts_T2', 'ArcCosts_T3',
-             'ArcCosts_S1', 
+             #'ArcCosts_S1', 
              'ArcCosts_S2'
-             , 'ArcCosts_S3'
+             #, 'ArcCosts_S3'
              ]
 
 STRATEGIES = ['R', 'A', 'F']
@@ -383,6 +383,7 @@ def solve_strategy_R(data, open_wh_baseline, active_arcs_baseline):
     sunk_arcs = sum(arc_fc[a]  for a in (active_arcs_baseline & A_fixed))
     cost_full = variable_cost + sunk_wh + sunk_arcs
 
+
     print(f"${cost_full:.2f} ({elapsed:.1f}s)")
 
     return cost_full, model, prob
@@ -476,6 +477,7 @@ def solve_strategy_A(data, open_wh_baseline, active_arcs_baseline):
     print(f"${cost:.2f} ({elapsed:.1f}s)")
 
     return cost, model, prob
+
 def solve_strategy_F(data):
     """
     Strategy F: Full redesign (greenfield).
