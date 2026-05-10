@@ -1,0 +1,103 @@
+ %!TEX root = main.tex
+
+\subsection{Sets and Parameters}
+
+\begin{description}[
+  labelwidth=3.6em, leftmargin=4em,
+  itemsep=1pt, parsep=0pt, topsep=3pt,
+  font=\normalfont]
+  \item[$P$]             products $\{A, B, C\}$
+  \item[$S,H,W,C$]       suppliers, hubs, warehouses, customers; $N=S\cup H\cup W\cup C$
+  \item[$A$]             $A_{\text{fixed}}\cup A_{\text{always}}$; $S_{\text{src}}^n$/$S_{\text{tgt}}^n$: arcs out of/into~$n$
+  \item[$Dem_c^p$]       demand of product~$p$ at customer~$c$
+  \item[$Sup_s^p$]       supply of product~$p$ at supplier~$s$
+  \item[$CapArc_a$]      shared arc capacity (all products)
+  \item[$CapWare_w$]     warehouse capacity
+  \item[$OpenCost_w$]    fixed opening cost of warehouse~$w$
+  \item[$FixAct_a$]      fixed activation cost, $a \in A_{\text{fixed}}$
+  \item[$TotalCost_a^p$] $(1+TariffRate_a)\cdot VarCost_a^p$
+\end{description}
+
+\subsection{Decision Variables}
+
+\begin{description}[
+  labelwidth=4.4em, leftmargin=4.8em,
+  itemsep=1pt, parsep=0pt, topsep=3pt,
+  font=\normalfont]
+  \item[$x_a^p \geq 0$]              flow of product~$p$ on arc~$a$
+  \item[$y_w \in \{0,1\}$]           1 if warehouse~$w$ is open
+  \item[$z_a \in \{0,1\}$]           1 if optional arc~$a \in A_{\text{fixed}}$ is activated
+\end{description}
+
+\subsection{Objective Function}
+
+\begin{align}
+  \min\; Z = \;
+  & \sum_{w \in W} OpenCost_w \cdot y_w \nonumber\\
+  &+ \sum_{a \in A_{\text{fixed}}} FixAct_a \cdot z_a \nonumber\\
+  &+ \sum_{a \in A}\sum_{p \in P} TotalCost_a^p \cdot x_a^p
+  \label{eq:obj}
+\end{align}
+
+\subsection{Constraints}
+
+\constraint{(C1) Demand satisfaction:}
+\begin{equation}
+  \sum_{a \in S_{\text{tgt}}^c} x_a^p = Dem_c^p
+  \quad \forall\, p \in P,\; c \in C
+  \label{eq:C1}
+\end{equation}
+
+\constraint{(C2) Supply availability:}
+\begin{equation}
+  \sum_{a \in S_{\text{src}}^s} x_a^p \leq Sup_s^p
+  \quad \forall\, p \in P,\; s \in S
+  \label{eq:C2}
+\end{equation}
+
+\constraint{(C3) Always-active arc capacity:}
+\begin{equation}
+  \sum_{p \in P} x_a^p \leq CapArc_a
+  \quad \forall\, a \in A_{\text{always}}
+  \label{eq:C3}
+\end{equation}
+
+\constraint{(C4) Optional arc capacity (big-M linking):}
+\begin{equation}
+  \sum_{p \in P} x_a^p \leq CapArc_a \cdot z_a
+  \quad \forall\, a \in A_{\text{fixed}}
+  \label{eq:C4}
+\end{equation}
+
+\constraint{(C5) Warehouse capacity (big-M linking):}
+\begin{equation}
+  \sum_{a \in S_{\text{tgt}}^w}\!\sum_{p \in P} x_a^p
+  \leq CapWare_w \cdot y_w
+  \quad \forall\, w \in W
+  \label{eq:C5}
+\end{equation}
+
+\constraint{(C6--C7) Flow conservation at warehouses and hubs:}
+\begin{equation}
+  \sum_{a \in S_{\text{src}}^n} x_a^p
+  = \sum_{a \in S_{\text{tgt}}^n} x_a^p
+  \quad \forall\, p \in P,\; n \in W \cup H
+  \label{eq:C6}
+\end{equation}
+
+\constraint{(C8--C9) Non-negativity and integrality:}
+\begin{equation}
+  x_a^p \geq 0, \quad y_w \in \{0,1\}, \quad z_a \in \{0,1\}
+  \label{eq:C8}
+\end{equation}
+
+\subsection{Modelling Notes}
+
+\begin{tcolorbox}[notebox]
+\small
+Tariff rates are applied as $TotalCost_a^p = (1+TariffRate_a)\cdot VarCost_a^p$,
+where $TariffRate_a$ is looked up by zone pair $(z_{\mathrm{from}}, z_{\mathrm{to}})$
+(confirmed with the course instructor).
+Hubs are uncapacitated transit nodes: C6--C7 enforce conservation but impose no
+capacity bound. C2 is an inequality to accommodate a slight supply surplus in the instance.
+\end{tcolorbox}

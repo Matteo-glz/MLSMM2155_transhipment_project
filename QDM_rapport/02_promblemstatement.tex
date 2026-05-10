@@ -1,0 +1,57 @@
+ %!TEX root = main.tex
+
+\subsection*{Network Overview}
+
+GlobalFlow is an international third-party logistics operator managing the
+end-to-end distribution of goods across a directed network
+$G=(N,A)$ with a four-tier hierarchical structure.
+The network connects $|S|=9$ origin suppliers to $|C|=30$ final customers
+through $|H|=5$ international hubs and $|W|=15$ regional warehouses,
+for a total of $|N|=59$ nodes and $|A|=317$ arcs.
+
+\vspace{4pt}
+{\small
+\begin{tabularx}{\columnwidth}{@{}l X r@{}}
+\toprule
+\textbf{Tier} & \textbf{Key locations} & $|\cdot|$ \\
+\midrule
+Suppliers ($S$)   & 3 per product (see below)                  & 9  \\
+Intl.\ Hubs ($H$) & FRA, DXB, SIN, ORD, GRU                   & 5  \\
+Warehouses ($W$)  & Rotterdam, Madrid, Mumbai \ldots            & 15 \\
+Customers ($C$)   & Europe~8, USA/Canada~8, Brazil~5, Japan~5, India~4 & 30 \\
+\bottomrule
+\end{tabularx}
+}
+
+\subsection*{Products}
+
+Three product families share the network infrastructure but differ in their
+cost structure, supplier base, and disruption exposure:
+
+\begin{description}[
+  labelwidth=1.2em, leftmargin=1.8em,
+  itemsep=2pt, parsep=0pt, font=\bfseries\normalsize]
+  \item[A] \textit{Fertilisers} — S1–S3 (Minsk, Casablanca, Spain);
+    sea and road transport; demand concentrated in agricultural regions.
+  \item[B] \textit{Semiconductors} — S4–S6 (Taipei, Seoul, Yokohama);
+    predominantly air freight; heavily exposed to East Asian hub disruptions.
+  \item[C] \textit{Battery components} — S7–S9 (Antofagasta, Lubumbashi, Chengdu);
+    mixed sea/air; sensitive to both tariff and energy shocks.
+\end{description}
+
+\subsection*{Arcs and Cost Structure}
+
+Of the 317 arcs, 270 are \textit{always-active} ($A_{\text{always}}$, zero
+fixed cost) and 47 are \textit{optional} ($A_{\text{fixed}}$, positive
+activation cost). Each arc carries a shared capacity $u_a$ across all products.
+Variable costs reflect distance, modal choice (air $\gg$ sea $>$ road), and
+product characteristics. Inter-zone tariff rates are applied multiplicatively
+on top of the baseline variable cost according to the bilateral zone matrix in
+\texttt{globalflow\_instance.xlsx}.
+
+\begin{tcolorbox}[questionbox, title={Central Question}]
+\small\itshape
+Is a network optimal under normal operating conditions also robust to the
+geopolitical and economic shocks of today's environment?
+And if not, at what cost can resilience be achieved?
+\end{tcolorbox}

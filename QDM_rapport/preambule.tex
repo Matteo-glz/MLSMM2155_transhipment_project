@@ -1,28 +1,40 @@
  %!TEX root = main.tex
-% --- Configuration linguistique et encodage ---
+
+% --- Encodage et langue ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[french]{babel}
+\usepackage[english]{babel}
 
 % --- Mise en page ---
-\usepackage{booktabs}   % Pour des tableaux élégants
-\usepackage{float}      % Pour forcer le placement des images avec [H]
-\usepackage{caption}    % Pour personnaliser les légendes
+\usepackage[top=1.8cm, bottom=2cm, left=1.8cm, right=1.8cm]{geometry}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{setspace}
+\usepackage{enumitem}        % contrôle fin des listes
+\usepackage{microtype}       % meilleure justification
+\usepackage{tabularx}        % colonnes flexibles
+\usepackage{array}           % options avancées de tableaux
 
 % --- Graphiques et images ---
 \usepackage{graphicx}
 \usepackage{wrapfig}
-\usepackage{xcolor}     % Pour utiliser des couleurs
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
 
 % --- Maths ---
-\usepackage{amsmath}    % Pour les équations
-\usepackage{amsfonts}   % Pour les symboles mathématiques
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathtools}
 
 % --- Liens et navigation ---
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue,
+    linkcolor=black,
+    citecolor=blue,
     filecolor=magenta,
     urlcolor=cyan,
     pdftitle={GlobalFlow Under Pressure},
@@ -30,10 +42,41 @@
 
 \captionsetup{font=small, labelfont=bf, textfont=it}
 
-% --- Page de garde ---
-\usepackage[most]{tcolorbox}
-\usepackage{setspace}
-
-% Définition obligatoire des couleurs pour la page de garde
+% --- Couleurs ---
 \definecolor{uclgold}{HTML}{C5B36A}
 \definecolor{ucllight}{HTML}{E2E86B}
+\definecolor{deepblue}{HTML}{1A3A5C}
+\definecolor{lightblue}{HTML}{EBF3FB}
+\definecolor{ruleblue}{HTML}{2E6DA4}
+\definecolor{warnyellow}{HTML}{FEF9E7}
+\definecolor{ruleorange}{HTML}{D4AC0D}
+
+% --- Styles tcolorbox ---
+\tcbset{
+  questionbox/.style={
+    enhanced, breakable,
+    colback=lightblue, colframe=ruleblue,
+    fonttitle=\bfseries\small, coltitle=deepblue,
+    left=6pt, right=6pt, top=4pt, bottom=4pt,
+    boxrule=0.6pt, arc=3pt,
+  },
+  notebox/.style={
+    enhanced, breakable,
+    colback=warnyellow, colframe=ruleorange,
+    fonttitle=\bfseries\small,
+    left=6pt, right=6pt, top=4pt, bottom=4pt,
+    boxrule=0.6pt, arc=3pt,
+  }
+}
+
+% --- Espacement des listes (global) ---
+\setlist{nosep, topsep=3pt, partopsep=0pt}
+\setlist[itemize]{leftmargin=1.4em}
+\setlist[enumerate]{leftmargin=1.6em}
+
+% --- Commande pour les entêtes de contraintes ---
+\newcommand{\constraint}[1]{%
+  \smallskip\noindent\textbf{#1}\nopagebreak\par\nopagebreak}
+
+% --- Séparation des colonnes ---
+\setlength{\columnsep}{16pt}

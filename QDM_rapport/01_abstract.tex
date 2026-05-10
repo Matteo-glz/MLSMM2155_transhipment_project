@@ -1,0 +1,33 @@
+ %!TEX root = main.tex
+
+
+% ── Abstract ──────────────────────────────────────────────────────────────────
+\twocolumn[
+  \vspace{1em}
+  {\small
+  \begin{center}
+    \textbf{\abstractname}
+  \end{center}
+  \begin{quotation}
+This report presents the design and stress-testing of the GlobalFlow international
+supply chain network, which distributes three product families — fertilisers~(A),
+semiconductors~(B), and battery components~(C) — across a five-hub, fifteen-warehouse
+multi-echelon structure connecting nine suppliers to thirty customers.
+Phase~1 solves a Mixed-Integer Program (MIP) to identify the cost-minimising baseline
+configuration, yielding an optimal total cost of $Z^* = \texttt{[INSERT Z*]}$, with
+\texttt{[k]} warehouses open and \texttt{[m]} optional arcs activated.
+Phase~2 subjects this network to six adversarial scenarios combining tariff shocks,
+energy crises, hub closures, and corridor blockades.
+For each scenario, three response strategies are evaluated: pure rerouting~(R),
+network adaptation~(A), and full redesign~(F).
+A central finding is that Scenarios S1 and S3 — involving the closure of
+hub~H3 (Singapore) — render the standard formulation structurally infeasible,
+because suppliers S4, S5, S6, and S9 are exclusively connected through H3,
+stranding 100\% of semiconductor supply and 33\% of battery component supply.
+We address this with a modified formulation that introduces unmet-demand slack
+variables for strategies~R and~A, and emergency sourcing arcs for strategy~F.
+Strategic analysis reveals a persistent single-point-of-failure in the baseline
+topology and quantifies the cost of building a more resilient network.
+  \end{quotation}}
+  \vspace{1.5em}
+]

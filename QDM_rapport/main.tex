@@ -1,20 +1,32 @@
 % !TEX root = main.tex
-\documentclass[conference]{IEEEtran}
+\documentclass[10pt, twocolumn, a4paper]{article}
 
 % --- Préambule ---
 \input{preambule.tex}
 
 \begin{document}
 
+
 % --- Page de garde (pleine page, hors colonnes) ---
 \input{page_de_garde.tex}
 \newpage
 
-% --- Table des matières (pleine largeur) ---
+\input{01_abstract.tex}
+
 \onecolumn
 \tableofcontents
-\twocolumn
 \newpage
+
+\twocolumn
+\section{Problem Statement}
+\input{02_promblemstatement.tex}
+
+\section{Mathematical Model}
+\input{03_model.tex}
+
+\section{Baseline Analysis}
+\input{04_baseline_analysis.tex}
+
 
 % --- Corps du rapport ---
 

@@ -1,0 +1,32 @@
+ %!TEX root = main.tex
+
+The baseline MIP was solved to optimality using FICO~Xpress imporyted as a Pyhthon library with a time limit of 300~seconds. The solver ruu in less than 1 second, confirming the tractability of the model and the suitability of the chosen formulation for the given data. 
+
+\paragraph{Optimal configuration.}
+The solver opens \texttt{[k]} out of 15 warehouses
+(\texttt{[W1, W2, ...]}) and activates \texttt{[m]} out of 47 optional arcs.
+The optimal cost decomposes as shown in Table~\ref{tab:phase1costs}.
+
+\begin{table}[H]
+\centering
+\caption{Baseline cost decomposition.}
+\label{tab:phase1costs}
+\begin{tabular}{lr}
+\toprule
+\textbf{Component} & \textbf{Cost (\$)} \\
+\midrule
+Warehouse opening  & [FILL]  \\
+Arc activation     & [FILL]  \\
+Variable transport & [FILL]  \\
+\midrule
+\textbf{Total} $Z^*$ & \textbf{[FILL]} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Network structure.}
+% Brief commentary — fill in once you have results.
+% Discuss: which hubs carry most flow? Which warehouses are most utilised?
+% Are there any surprising routing patterns?
+\texttt{[TODO: 3--4 sentences commenting on hub load distribution, warehouse
+utilisation rates, and dominant transport modes per product.]}
