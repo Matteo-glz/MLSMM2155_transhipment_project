@@ -23,11 +23,15 @@ __pycache__/
 *.xlsx
 # Keep the shared input dataset
 !data/globalflow_instance.xlsx
+strategy_A.xlsx
+strategy_R.xlsx
+strategy_F.xlsx
 
 # ── Excel temporary lock files ────────────────────────────────────────────────
 ~$*.xlsx
+*.xlsx#
+
 
 # ── HTML map outputs ──────────────────────────────────────────────────────────
-*.html
 
-results
+*.png
