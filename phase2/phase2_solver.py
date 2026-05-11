@@ -42,9 +42,12 @@ xp.init('/Applications/FICO Xpress/xpressmp/bin/xpauth.xpr')
 # CONFIGURATION  ← edit here
 # =============================================================================
 
-EXCEL_FILE             = 'data/globalflow_instance.xlsx'
-BASELINE_SOLUTION_FILE = 'phase1/results/baseline_solution.xlsx'
-RESULTS_DIR            = 'phase2/results'
+_HERE = os.path.dirname(os.path.abspath(__file__))   # phase2/
+_ROOT = os.path.dirname(_HERE)                        # project root
+
+EXCEL_FILE             = os.path.join(_ROOT, 'data',   'globalflow_instance.xlsx')
+BASELINE_SOLUTION_FILE = os.path.join(_ROOT, 'phase1', 'results', 'baseline_solution.xlsx')
+RESULTS_DIR            = os.path.join(_ROOT, 'phase2', 'results')
 
 ALL_SCENARIO_KEYS = ['T1', 'T2', 'T3', 'S1', 'S2', 'S3']
 STRATEGIES        = ['R', 'A', 'F']

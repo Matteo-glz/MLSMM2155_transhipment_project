@@ -1,0 +1,125 @@
+ %!TEX root = main.tex
+
+ \subsection{Response Strategy Framework}
+
+For each adverse scenario, three response strategies are evaluated:
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{R : Rerouting only.} The baseline infrastructure
+    ($W^*, A^*$) is held fixed; only flow routing is re-optimised.
+    Fixed costs are sunk and not re-incurred. This represents the
+    immediate, operational response horizon.
+
+  \item \textbf{A : Adaptation.} Warehouse opening and arc activation
+    decisions are freed; the solver may open or close facilities and
+    activate or deactivate arcs at their respective costs. This represents
+    a medium-term reconfiguration.
+
+  \item \textbf{F : Full redesign.} Phase~1 is re-solved from scratch under
+    the scenario's parameters, ignoring sunk costs. This gives a lower bound
+    on achievable cost and represents the long-run strategic horizon.
+\end{itemize}
+
+The disruption cost for a given scenario~$s$ and strategy~$\sigma$ is:
+\begin{equation}
+  \Delta Z(s,\sigma) = Z(s,\sigma) - Z^*
+  \label{eq:deltaz}
+\end{equation}
+where $Z^*$ is the baseline optimal cost from Phase~1.
+
+\subsection{Scenario Overview}
+
+Table~\ref{tab:scenarios} summarises the six scenarios.
+
+\begin{table}[H]
+\centering
+\caption{Phase~2 adversarial scenarios.}
+\label{tab:scenarios}
+\begin{tabular}{lll}
+\toprule
+\textbf{ID} & \textbf{Type} & \textbf{Shock} \\
+\midrule
+T1 & Tariff      & $+40\%$ transatlantic/transpacific \\
+T2 & Energy      & Air $+60\%$, road $+20\%$, sea $+10\%$ \\
+T3 & Seasonal    & Hub handling fees $+30\%$ (Q4) \\
+S1 & Node loss   & H3 (Singapore) closed \\
+S2 & Arc loss    & Korea--Europe corridor blocked \\
+S3 & Combined    & T2 $+$ S1 simultaneously \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{T1 : Trump-era tariff shock.}
+A 40\% surcharge is applied to all arcs crossing the transatlantic and
+transpacific corridors, primarily affecting products~B and~C whose supply
+chains rely heavily on Asia--Americas and Asia--Europe routes.
+Under strategy~R, flows can be partially rerouted through Middle East or
+intra-regional corridors; under~F, the network may reorganise around
+lower-tariff paths.
+
+\paragraph{T2 : Energy crisis.}
+Inspired by the Ukraine/Iran conflict, this scenario raises air freight by
+60\%, road by 20\%, and sea by 10\%. The asymmetric impact penalises
+time-sensitive, air-intensive routing heavily. Products with modal
+flexibility benefit most from adaptation.
+
+\paragraph{T3 : Seasonal hub surcharge.}
+A 30\% surcharge on hub handling fees during Q4 raises the effective cost
+of all hub-transiting flows. Products that route through multiple hubs
+(notably~A via sea and~B via air) are most exposed.
+
+\paragraph{S2 : Korea--Europe corridor blockade.}
+A set of arcs representing the South Korea export corridor to Europe are
+removed. This primarily disrupts product~B (semiconductors), which relies
+on Korean-origin flows. Alternative routing through other hubs is feasible,
+at higher cost.
+
+\subsection{S1 and S3: Structural Infeasibility and Modified Formulation}
+\label{sec:s1s3}
+
+Scenarios S1 and~S3 involve the closure of hub~H3 (Singapore), motivated
+by a simulated Taiwan Strait crisis. Unlike the other scenarios, these
+are \emph{structurally infeasible} under the standard formulation
+(equations \ref{eq:C1}--\ref{eq:C8}).
+
+\paragraph{Root cause.}
+Suppliers S4, S5, and~S6 (producing product~B) and supplier~S9
+(producing product~C) are exclusively connected to the network through~H3.
+When H3 is removed, all 42 arcs incident to it are severed, leaving
+these suppliers with no outgoing path. The resulting supply deficit is:
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+  \item Product~B: $-2{,}223$ units (100\% of total supply stranded)
+  \item Product~C: $-631$ units (33\% of total supply stranded)
+\end{itemize}
+
+With C1 as a hard equality constraint, no feasible solution exists.
+
+\paragraph{Modified formulation for strategies R and A.}
+We introduce a non-negative slack variable $unmet_c^p \in [0, Dem_c^p]$
+representing unserved demand, and replace~\eqref{eq:C1} with:
+\begin{equation}
+  \sum_{a \in S_{\text{target}}^c} x_a^p + unmet_c^p = Dem_c^p
+  \quad \forall\, p \in P,\; c \in C
+  \label{eq:C1_relaxed}
+\end{equation}
+The objective gains a penalty term $M \cdot \sum_{c,p} unmet_c^p$ with
+$M = 10^6$, large enough to ensure unmet demand is never preferred over
+any feasible routing. The logistics cost reported excludes the penalty:
+$Z_{\text{logistics}} = Z_{\text{obj}} - M \cdot \sum_{c,p} unmet_c^p$.
+
+\paragraph{Modified formulation for strategy F.}
+Full demand satisfaction
+is restored by injecting one emergency supply arc per
+stranded supplier, connecting it to the geographically
+closest remaining active hub. The unit cost scales with
+distance: $c_a^{\text{emg},p} = \gamma \cdot \hat{c}^{s,p}
+\cdot \hat{d}^{s,h}$, where $\hat{c}^{s,p}$ is the
+cost-per-km derived from the supplier's original baseline
+arc, $\hat{d}^{s,h}$ is the estimated rerouting distance
+via the removed hub, and $\gamma = 2.5$ models spot-market
+procurement. Under~F, constraint~\eqref{eq:C1} is enforced
+as a hard equality~--- the emergency arcs restore
+feasibility while the objective captures the full
+procurement premium.
+
