@@ -38,7 +38,7 @@ SCENARIO = 'ArcCosts_Baseline'
 PRODUCTS      = ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents']
 MAX_SOLVE_TIME = 300   # seconds
 
-OUTPUT_FILE   = f'phase1/result/baseline_solution.xlsx'
+OUTPUT_FILE   = f'phase1/results/baseline_solution.xlsx'
 
 # =============================================================================
 # 2. DATA LOADING

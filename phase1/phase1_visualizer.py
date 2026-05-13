@@ -7,7 +7,7 @@ Filter buttons let you show all products, a single one, or any pair.
 import pandas as pd
 import plotly.graph_objects as go
 
-SOLUTION_FILE = 'phase1/result/baseline_solution.xlsx'
+SOLUTION_FILE = 'phase1/results/baseline_solution.xlsx'
 INSTANCE_FILE = 'data/globalflow_instance.xlsx'
 
 PRODUCTS = ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents']
@@ -230,6 +230,6 @@ fig.update_layout(
     height=680,
 )
 
-output_file = 'phase1/result/baseline_optimal_map.html'
+output_file = 'phase1/results/baseline_optimal_map.html'
 fig.write_html(output_file)
 print(f'Map saved to {output_file}')

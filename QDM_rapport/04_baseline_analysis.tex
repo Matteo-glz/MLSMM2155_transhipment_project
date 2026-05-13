@@ -2,7 +2,7 @@
 
 The baseline MIP was solved to global optimality using FICO~Xpress imported as a
 Python library with a time limit of 300~seconds.
-The solver terminates in less than 0.1~second ($0.024$~s), confirming the
+The solver terminates in less than 0.1~second ($0.026$~s), confirming the
 tractability of the model and the suitability of the chosen formulation for the
 given instance.
 
@@ -29,11 +29,11 @@ The optimal cost decomposes as shown in Table~\ref{tab:phase1costs}.
 \midrule
 Warehouse opening     &      22{,}046 &  0.5\% \\
 Arc activation        &      19{,}638 &  0.5\% \\
-Transport --- A (Fert.) &    623{,}643 & 14.5\% \\
-Transport --- B (Semi.) &  2{,}696{,}067 & 62.7\% \\
-Transport --- C (Batt.) &    938{,}415 & 21.8\% \\
+Transport --- A (Fert.) &    638{,}198 & 14.3\% \\
+Transport --- B (Semi.) &  2{,}814{,}741 & 63.2\% \\
+Transport --- C (Batt.) &    960{,}176 & 21.6\% \\
 \midrule
-\textbf{Total} $Z^*$  & \textbf{4{,}299{,}810} & 100\% \\
+\textbf{Total} $Z^*$  & \textbf{4{,}454{,}800} & 100\% \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -45,12 +45,14 @@ of semiconductor demand~(B) — 100\% of product~B supply — plus 631~units of
 battery components~(C), for a combined throughput of 2{,}853~units.
 This concentration creates the network's central single point of failure,
 discussed further in Phase~2.
-Frankfurt~(H1) is the primary hub for fertilisers~(A), handling 1{,}063~units
-(51\% of~A demand), while Dubai~(H2) is the only hub active for all three
-products simultaneously (325~A, 549~B, 631~C).
+Frankfurt~(H1) is the primary hub for fertilisers~(A), handling 1{,}050~units
+(50\% of~A demand), while Dubai~(H2) is the only hub active for all three
+products simultaneously (338~A, 722~B, 631~C).
 Chicago~(H4) and S\~ao Paulo~(H5) serve regional spill-over demand and carry
-610 and 1{,}168~units respectively; neither routes semiconductor flow, insulating
-them from the H3 vulnerability.
+693 and 1{,}168~units respectively; H5 routes only fertilisers~(A) and battery
+components~(C), while H4 handles 536~units of semiconductor~(B) relayed through
+W6, which itself draws entirely from H3 — so H4 inherits indirect exposure to
+the H3 single-point-of-failure.
 
 Warehouse utilisation spans a wide range: Rotterdam~(W1) operates at
 91.3\%~capacity, while Chennai~(W5) reaches only 4.1\%.
@@ -65,7 +67,7 @@ sea transport for long-haul legs and road for last-mile delivery.
 Even for semiconductors~(B) — nominally an air-heavy product — the direct
 sea connections through H3~(Singapore) are sufficiently cost-competitive under
 baseline tariffs.
-Sea freight accounts for 79--82\% of flow volume across all three products;
+Sea freight accounts for 74--82\% of flow volume across all three products;
 road handles the remaining 18--26\% exclusively in warehouse-to-customer arcs.
 This modal choice leaves a substantial latent capacity buffer on air routes,
 which becomes relevant when analysing energy-shock scenarios in Phase~2.
@@ -75,9 +77,9 @@ which becomes relevant when analysing energy-shock scenarios in Phase~2.
 \paragraph{LP bound and LP--IP gap.}
 We analyse the formulation quality by comparing the LP~relaxation bound~$Z_{\text{LP}}^*$
 — obtained by relaxing the binary constraints on $y_w$ and $z_a$ to
-$[0,1]$ — against the MIP optimal~$Z^* = \$4{,}299{,}810$.
+$[0,1]$ — against the MIP optimal~$Z^* = \$4{,}454{,}800$.
 FICO~Xpress solves the MIP to global optimality at the root node of the B\&B
-tree in 0.024~seconds with no branching, implying that the LP~relaxation at the
+tree in 0.026~seconds with no branching, implying that the LP~relaxation at the
 root is already integer-valued.
 The LP--IP gap is therefore \textbf{0\%}: $Z_{\text{LP}}^* = Z^*$.
 This is a strong indicator of formulation quality, as it means the continuous
