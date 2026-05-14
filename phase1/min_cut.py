@@ -30,7 +30,7 @@ import networkx as nx
 import os
 
 EXCEL_FILE  = '/Users/matteogalizia/Documents/GitHub/MLSMM2155_transhipment_project/data/globalflow_instance.xlsx'
-OUTPUT_FILE = 'phase2/results/mincut_analysis.xlsx'
+OUTPUT_FILE = 'phase1/results/mincut_analysis.xlsx'
 PRODUCTS    = ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents']
 
 os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)

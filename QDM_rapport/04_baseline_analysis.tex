@@ -41,8 +41,8 @@ Transport --- C (Batt.) &    960{,}176 & 21.6\% \\
 \paragraph{Network structure.}
 Hub load is highly asymmetric.
 Singapore~(H3) is the dominant transit node: it routes \emph{all} 2{,}222~units
-of semiconductor demand~(B) — 100\% of product~B supply — plus 631~units of
-battery components~(C), for a combined throughput of 2{,}853~units.
+of semiconductor demand, 100\% of product~B supply,plus 631~units of
+battery components, for a combined throughput of 2{,}853~units.
 This concentration creates the network's central single point of failure,
 discussed further in Phase~2.
 Frankfurt~(H1) is the primary hub for fertilisers~(A), handling 1{,}050~units
@@ -51,7 +51,7 @@ products simultaneously (338~A, 722~B, 631~C).
 Chicago~(H4) and S\~ao Paulo~(H5) serve regional spill-over demand and carry
 693 and 1{,}168~units respectively; H5 routes only fertilisers~(A) and battery
 components~(C), while H4 handles 536~units of semiconductor~(B) relayed through
-W6, which itself draws entirely from H3 — so H4 inherits indirect exposure to
+W6, which itself draws entirely from H3, so H4 inherits indirect exposure to
 the H3 single-point-of-failure.
 
 Warehouse utilisation spans a wide range: Rotterdam~(W1) operates at
@@ -62,29 +62,12 @@ demand cannot be rerouted without activating a more expensive path.
 The three European warehouses~(W1--W3) together absorb most of fertiliser
 outflow, consistent with the agricultural-demand concentration in that region.
 
-The cost-minimising solution activates \emph{no air freight}: all flows use
-sea transport for long-haul legs and road for last-mile delivery.
-Even for semiconductors~(B) — nominally an air-heavy product — the direct
-sea connections through H3~(Singapore) are sufficiently cost-competitive under
-baseline tariffs.
+The cost-minimising solution  uses sea transport for long-haul legs and road for 
+last-mile delivery. 
 Sea freight accounts for 74--82\% of flow volume across all three products;
 road handles the remaining 18--26\% exclusively in warehouse-to-customer arcs.
-This modal choice leaves a substantial latent capacity buffer on air routes,
-which becomes relevant when analysing energy-shock scenarios in Phase~2.
 
 \subsection*{Formulation Quality and LP~Relaxation}
-
-\paragraph{LP bound and LP--IP gap.}
-We analyse the formulation quality by comparing the LP~relaxation bound~$Z_{\text{LP}}^*$
-— obtained by relaxing the binary constraints on $y_w$ and $z_a$ to
-$[0,1]$ — against the MIP optimal~$Z^* = \$4{,}454{,}800$.
-FICO~Xpress solves the MIP to global optimality at the root node of the B\&B
-tree in 0.026~seconds with no branching, implying that the LP~relaxation at the
-root is already integer-valued.
-The LP--IP gap is therefore \textbf{0\%}: $Z_{\text{LP}}^* = Z^*$.
-This is a strong indicator of formulation quality, as it means the continuous
-relaxation of our big-M model perfectly describes the integer hull of the
-feasible region for this instance.
 
 \paragraph{Aggregated vs.\ disaggregated capacity constraints.}
 Our formulation uses \emph{aggregated} arc-capacity constraints~(C4):
@@ -92,22 +75,90 @@ Our formulation uses \emph{aggregated} arc-capacity constraints~(C4):
   \sum_{p \in P} x_a^p \;\leq\; \mathit{CapArc}_a \cdot z_a
   \qquad \forall\, a \in A_{\text{fixed}},
 \]
-which links the total cross-product flow to a single binary.
-An alternative \emph{disaggregated} formulation would impose one constraint
-per product:
+An alternative \emph{disaggregated} formulation imposes one
+constraint per product:
 \[
   x_a^p \;\leq\; \mathit{CapArc}_a \cdot z_a
   \qquad \forall\, p \in P,\; a \in A_{\text{fixed}},
 \]
-adding $|P| \cdot |A_{\text{fixed}}| = 3 \times 47 = 141$ constraints instead
-of 47.
-Disaggregated constraints are theoretically tighter because they bound each
-product's individual flow rather than just their aggregate, producing a stronger
-LP~relaxation in general.
-In practice, however, since our aggregated formulation already achieves a 0\%
-LP--IP gap, the disaggregated version offers no benefit here and would merely
-increase model size.
-We therefore retain the aggregated formulation for computational efficiency.
+adding $|P| \cdot |A_{\text{fixed}}| = 141$ constraints instead
+of~47.
+Disaggregated constraints are theoretically tighter when each
+product has its own dedicated capacity. Here, however, arc
+capacities are \emph{shared} across all products simultaneously:
+the disaggregated formulation bounds each product's flow
+individually against the full arc capacity, implicitly allowing
+their sum to exceed it in the LP relaxation.
+Empirically, the disaggregated LP yields
+$Z_{\text{LP}}^* = \$4{,}421{,}640$ (gap $0.744\%$), a
+\emph{weaker} bound than the aggregated version by \$3{,}003.
+The aggregated constraint~(C4) is therefore the tighter and more
+natural formulation for this shared-capacity network.
+We retain it for both correctness and simplicity.
+
+\subsection*{Network Vulnerability: Min-Cut Analysis}
+
+\paragraph{Global min-cut.}
+To characterise the structural robustness of the baseline network,
+we compute the global min-cut using a max-flow formulation with a
+super-source connected to all suppliers and a super-sink connected
+to all customers. The global min-cut value equals \textbf{6,197
+units}, which coincides exactly with total demand (bottleneck
+ratio: 100\%). The saturated cut passes entirely through the
+demand arcs (customer $\rightarrow$ super-sink), confirming that
+no internal arc capacity is the binding constraint under baseline
+conditions, the network is dimensioned precisely to meet demand
+without slack.
+
+\paragraph{Node criticality.}
+We assess node criticality by computing the max-flow achievable
+after removing each node individually.
+Table~\ref{tab:node_criticality} reports the results for the
+four critical nodes identified.
+
+\begin{table}[H]
+\centering
+\caption{Node criticality: flow loss upon node removal.}
+\label{tab:node_criticality}
+\small
+\begin{tabular}{llrr}
+\toprule
+\textbf{Node} & \textbf{Type} & \textbf{Flow drop} & \textbf{\%} \\
+\midrule
+H3 (Singapore)  & Hub & 2{,}853 & 46.0\% \\
+H1 (Frankfurt)  & Hub &   973   & 15.7\% \\
+H2 (Dubai)      & Hub &   887   & 14.3\% \\
+H5 (São Paulo)  & Hub &   828   & 13.4\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hub~H3 (Singapore) is by far the most critical node: its removal
+causes a 46\% collapse in network throughput, far exceeding the
+impact of any other node. This structural dependency directly
+anticipates the infeasibility of Scenarios~S1 and~S3 in Phase~2,
+where H3 closure strands suppliers~S6 and~S9 with no alternative
+routing path. The remaining active hubs (H1~Frankfurt, H2~Dubai,
+H5~São Paulo) each account for 13--16\% of throughput; their
+geographic dispersion across Europe, the Middle East, and the
+Americas provides partial resilience against single-region hub
+disruptions, but no substitute for H3's role in the Asia-Pacific
+corridor.
+
+At the warehouse layer, no individual facility removal degrades
+throughput, confirming that warehouse placement serves
+cost-optimisation rather than feasibility. However, a
+combinatorial analysis reveals a collective vulnerability: removing
+as few as two warehouses simultaneously can reduce flow by 7.3\%
+(Rotterdam and Madrid), and three Americas-cluster warehouses
+(Houston, Toronto, Monterrey) together cut throughput by 14.5\%.
+The threshold for a \textgreater{}20\% degradation is reached at
+$k = 4$ simultaneous closures, all concentrated in the Americas
+region. This correlated regional fragility is directly relevant to
+the canal disruption scenarios in Phase~3: Panama Canal capacity
+reductions simultaneously constrain multiple arcs serving these
+same Americas warehouses, effectively replicating a correlated
+regional shock on the warehouse layer.
 
 \begin{tcolorbox}[notebox, title={Phase~1 key finding}]
 \small

@@ -62,14 +62,14 @@
   \label{eq:C3}
 \end{equation}
 
-\constraint{(C4) Optional arc capacity (big-M linking):}
+\constraint{(C4) Optional arc capacity :}
 \begin{equation}
   \sum_{p \in P} x_a^p \leq CapArc_a \cdot z_a
   \quad \forall\, a \in A_{\text{fixed}}
   \label{eq:C4}
 \end{equation}
 
-\constraint{(C5) Warehouse capacity (big-M linking):}
+\constraint{(C5) Warehouse capacity :}
 \begin{equation}
   \sum_{a \in S_{\text{tgt}}^w}\!\sum_{p \in P} x_a^p
   \leq CapWare_w \cdot y_w
@@ -94,8 +94,7 @@
 \begin{tcolorbox}[notebox, title={Modelling Notes}]
 \small
 Tariff rates are applied as $TotalCost_a^p = (1+TariffRate_a)\cdot VarCost_a^p$,
-where $TariffRate_a$ is looked up by zone pair $(z_{\mathrm{from}}, z_{\mathrm{to}})$
-(confirmed with the course instructor).
+where $TariffRate_a$ is looked up by zone pair $(z_{\mathrm{from}}, z_{\mathrm{to}})$.
 Hubs are uncapacitated transit nodes: C6--C7 enforce conservation but impose no
 capacity bound. C2 is an inequality to accommodate a slight supply surplus in the instance.
 Suppliers S4, S5, S6, and S9 are exclusively connected to hub~H3

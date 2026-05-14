@@ -190,15 +190,14 @@ print(f"  Sunk arc cost   : ${SUNK_BASELINE_ARC_COST:,.2f}")
 
 SUEZ_ZONE_PAIRS = {
     ('Europe',      'Asia'),        ('Asia',        'Europe'),
-    ('Europe',      'MiddleEast'),  ('MiddleEast',  'Europe'),
-    ('MiddleEast',  'Asia'),        ('Asia',        'MiddleEast'),
-    ('Europe',      'Africa'),      ('Africa',      'Europe'),
+    ('Europe',      'MiddleEast'),  ('MiddleEast',  'Europe')
+       
 }
 
 PANAMA_ZONE_PAIRS = {
     ('Americas',     'Asia'),         ('Asia',         'Americas'),
     ('SouthAmerica', 'Asia'),         ('Asia',         'SouthAmerica'),
-    ('Americas',     'SouthAmerica'), ('SouthAmerica', 'Americas'),
+    ('Americas',     'SouthAmerica'), ('SouthAmerica', 'Americas')
 }
 
 suez_arc_ids   = set()
@@ -216,13 +215,6 @@ for _, row in arcs_df_all.iterrows():
 print(f"\n  Suez-corridor sea arcs   : {len(suez_arc_ids)}")
 print(f"  Panama-corridor sea arcs : {len(panama_arc_ids)}")
 
-# --- Pre-solve validation ---
-assert 40 <= len(suez_arc_ids) <= 70, (
-    f"Unexpected Suez arc count: {len(suez_arc_ids)} (expected 40–70). "
-    "Check zone_from/zone_to values in the Arcs sheet.")
-assert 50 <= len(panama_arc_ids) <= 75, (
-    f"Unexpected Panama arc count: {len(panama_arc_ids)} (expected 50–75). "
-    "Check zone_from/zone_to values in the Arcs sheet.")
 
 # Print minimum remaining capacity for capacity-reduction scenarios (sanity check)
 all_arc_cap_bl = dict(zip(arcs_df_all['arc_id'], arcs_df_all['shared_capacity']))

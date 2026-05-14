@@ -97,7 +97,7 @@ STRATEGIES        = ['R', 'A', 'F']
 
 PRODUCTS          = ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents']
 MAX_SOLVE_TIME    = 300        # seconds per solve
-PENALTY_M         = 1_000_000  # cost per unit of unmet demand (R and A on infeasible)
+PENALTY_M         = 1000000  # cost per unit of unmet demand (R and A on infeasible)
 EMERGENCY_PREMIUM = 2.5        # gamma: spot-market procurement premium (F infeasible)
 EMG_TOP_K         = 1          # connect each stranded supplier to top-K closest hubs
 

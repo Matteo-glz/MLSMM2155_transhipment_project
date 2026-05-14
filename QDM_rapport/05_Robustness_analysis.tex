@@ -119,7 +119,435 @@ cost-per-km derived from the supplier's original baseline
 arc, $\hat{d}^{s,h}$ is the estimated rerouting distance
 via the removed hub, and $\gamma = 2.5$ models spot-market
 procurement. Under~F, constraint~\eqref{eq:C1} is enforced
-as a hard equality~--- the emergency arcs restore
+as a hard equality, the emergency arcs restore
 feasibility while the objective captures the full
 procurement premium.
+
+\subsection{Phase 2 Results}
+\label{sec:phase2_results}
+
+Table~\ref{tab:phase2_results} summarises the logistics cost
+$Z_{\text{log}}$ delivered by each strategy across the six scenarios,
+together with the disruption cost $\Delta Z_F$ achieved by the
+greenfield benchmark. All values reported here are
+\emph{logistics costs} (sunk + new fixed + variable), excluding the
+penalty term $M \cdot \mathit{unmet}$, they are therefore directly
+comparable to $Z^* = \$4{,}454{,}801$ from Phase~1.
+
+\begin{table}[H]
+\centering
+\caption{Phase~2 logistics costs (\$). $\Delta Z_F = Z_F - Z^*$.}
+\label{tab:phase2_results}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrl}
+\toprule
+\textbf{Sc.} & $Z_R$ & $Z_A$ & $Z_F$ & $\Delta Z_F$ & $\Delta\%$ & \textbf{Best} \\
+\midrule
+T1 & 4{,}610{,}797 & 4{,}610{,}341 & 4{,}610{,}256 &   155{,}456 &   3.49 & F \\
+T2 & 4{,}928{,}846 & 4{,}928{,}846 & 4{,}928{,}846 &   474{,}045 &  10.64 & R \\
+T3 & 5{,}406{,}145 & 5{,}307{,}901 & 5{,}307{,}084 &   852{,}284 &  19.13 & F \\
+S1$^\dagger$ & 1{,}343{,}415 & 1{,}344{,}313 & 8{,}088{,}281 & 3{,}633{,}480 &  81.56 & F \\
+S2 & 4{,}454{,}801 & 4{,}454{,}801 & 4{,}454{,}801 &           0 &   0.00 & --- \\
+S3$^\dagger$ & 1{,}493{,}239 & 1{,}494{,}105 & 8{,}443{,}935 & 3{,}989{,}134 &  89.55 & F \\
+\bottomrule
+\end{tabular}\\
+\footnotesize
+$^\dagger$ Under S1 and~S3, strategies R and A leave $2{,}853$ units
+of demand unserved (B: $2{,}222$, C: $631$). Their reported
+$Z_R, Z_A$ exclude the penalty $M\cdot\mathit{unmet}$ and are
+therefore not comparable to $Z_F$ or to $Z^*$.
+\end{table}
+
+\paragraph{Monotonicity check.}
+For every \emph{feasible} scenario the expected ordering
+$Z_F \leq Z_A \leq Z_R$ is respected: in T1, T3 the inequalities are
+strict; in T2 and~S2 the three strategies tie because the baseline
+network already supports the optimal flow under the shock and no
+reconfiguration is value-creating. For the infeasible scenarios
+(S1, S3) the ordering is inverted on the logistics-cost ledger
+($Z_R < Z_A \ll Z_F$) precisely because R and A leave most of the
+flow unserved, see the dedicated discussion below.
+
+\subsubsection*{Feasible scenarios (T1, T2, T3, S2)}
+
+\paragraph{T1 : Transatlantic/transpacific tariff.}
+The $+40\%$ surcharge on cross-Pacific and cross-Atlantic arcs is
+absorbed almost entirely at the variable-cost layer: the network
+structure is not strained, only its operating cost. Strategy~F yields
+$Z_F = \$4{,}610{,}256$ ($\Delta Z = +\$155{,}456$, $+3.49\%$),
+of which $\$22{,}046$ are warehouse opening costs, $\$21{,}222$ are
+arc activation costs, and $\$4{,}566{,}988$ are variable transport
+costs. The flexibility value $Z_R - Z_A = \$456$ is negligible:
+strategy~A buys the network only the right to activate two extra
+arcs (A188: W1$\rightarrow$W12 sea; A224: W12$\rightarrow$C1 road)
+that shave less than one part in ten thousand off the rerouting bill.
+Economically, T1 is a \emph{pure price shock}, the baseline topology
+is already near-optimal and there is nothing structural for
+adaptation to fix.
+
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario T1 (\$).}
+\label{tab:cost_decomp_t1}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\midrule
+\multicolumn{5}{l}{\textit{Fixed costs}} \\
+~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
+~~WH opening (new) & \$0 & \$0 & \$0 & \$22,046 \\
+~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
+~~Arc activation (new) & \$0 & \$0 & \$2,400 & \$21,222 \\
+\midrule
+\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$623,643 & \$683,913 & \$681,599 & \$681,599 \\
+~~B (Semiconductors) & \$2,696,067 & \$2,911,860 & \$2,911,316 & \$2,911,316 \\
+~~C (Battery Comp.) & \$938,415 & \$973,340 & \$973,341 & \$974,072 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$4,610,797 & \$4,610,341 & \$4,610,256 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+155,997 & \$+155,541 & \$+155,456 \\
+$\Delta Z$ (\%) & --- & +3.5\% & +3.5\% & +3.5\% \\
+Flex.\ value $Z_R - Z_A$ & --- & \multicolumn{2}{c}{\$456} & --- \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Network changes vs.\ baseline --- scenario T1.}
+\label{tab:network_t1}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llllr}
+\toprule
+\textbf{Strategy} & \textbf{Arc} & \textbf{Route} & \textbf{Mode} & \textbf{Fixed cost (\$)} \\
+\midrule
+R & \multicolumn{4}{l}{No change vs.\ baseline} \\
+\midrule
+A & A188 & W1$\to$W12 & sea & \$683 \\
+ & A224 & W12$\to$C1 & road & \$1,718 \\
+\midrule
+F & A188 & W1$\to$W12 & sea & \$683 \\
+ & A224 & W12$\to$C1 & road & \$1,718 \\
+ & A225 & W11$\to$C1 & road & (deactivated) \\
+\midrule
+\bottomrule
+\end{tabular}
+}
+\end{table}
+ 
+
+
+
+\paragraph{T2 : Energy crisis.}
+The asymmetric modal surcharge (air $+60\%$, road $+20\%$, sea $+10\%$)
+lifts every strategy to exactly $Z_F = \$4{,}928{,}846$
+($+10.64\%$): R, A and F coincide. The baseline already routes
+flows along the cheapest modal mix for the products it carries, and
+no warehouse reconfiguration, arc activation, or full redesign can
+improve on it under a uniform per-mode multiplier, every alternative
+path is penalised at least as much as the current one. The
+flexibility value collapses to zero. The disruption cost is therefore
+a \emph{floor}: any network operating these products under this
+modal mix will pay $+10.64\%$. This conclusion aligns with the Phase~1 network design: the majority of freight is 
+routed via sea, which experiences the smallest cost increase in this scenario.
+
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario T2 (\$).}
+\label{tab:cost_decomp_t2}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R, A, F} \\
+\midrule
+\multicolumn{3}{l}{\textit{Fixed costs}} \\
+~~WH opening (sunk) & \$22,046 & \$22,046 \\
+~~WH opening (new) & \$0 & \$0 \\
+~~Arc activation (sunk) & \$19,638 & \$19,638 \\
+~~Arc activation (new) & \$0 & \$0 \\
+\midrule
+\multicolumn{3}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$623,643 & \$714,724 \\
+~~B (Semiconductors) & \$2,696,067 & \$3,107,930 \\
+~~C (Battery Comp.) & \$938,415 & \$1,064,507 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$4,928,846 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+474,045 \\
+$\Delta Z$ (\%) & --- & +10.6\% \\
+Flex.\ value $Z_R - Z_A$ & --- & \$0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Significant flow shifts under R --- scenario T2 (arcs with $|\Delta \text{flow}| > 10$ units).}
+\label{tab:r_shifts_t2}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Arc} & \textbf{Product} & \textbf{Flow (BL)} & \textbf{Flow (R)} & $\Delta$\textbf{Flow} & $\Delta$\textbf{Cost (\$)} \\
+\midrule
+A133 (W6$\to$H4) & B (Semiconductors) & 453 & 536 & +83 & +184,278 \\
+A120 (H3$\to$W15) & B (Semiconductors) & 157 & 463 & +306 & +83,105 \\
+A102 (H3$\to$W6) & B (Semiconductors) & 660 & 743 & +83 & +61,516 \\
+A013 (H2$\to$H1) & B (Semiconductors) & 352 & 403 & +51 & +43,844 \\
+A066 (H2$\to$W3) & B (Semiconductors) & 146 & 213 & +67 & +31,944 \\
+A069 (W4$\to$H2) & B (Semiconductors) & 243 & 310 & +67 & +17,775 \\
+A142 (H4$\to$W11) & B (Semiconductors) & 352 & 435 & +83 & +7,021 \\
+A002 (S1$\to$H2) & A (Fertilizers) & 325 & 338 & +13 & +6,416 \\
+A062 (H2$\to$W1) & C (Battery Comp.) & 223 & 206 & -17 & +4,393 \\
+A068 (H2$\to$W4) & A (Fertilizers) & 195 & 208 & +13 & +3,009 \\
+A001 (S1$\to$H1) & A (Fertilizers) & 369 & 356 & -13 & +1,129 \\
+A042 (H1$\to$W6) & A (Fertilizers) & 44 & 31 & -13 & -2,170 \\
+A066 (H2$\to$W3) & C (Battery Comp.) & 280 & 217 & -63 & -5,711 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\paragraph{T3 : Q4 hub surcharge.}
+The $+30\%$ handling-fee shock is the most interesting feasible
+case. Strategy~R is stuck with $Z_R = \$5{,}406{,}145$ ($+21.36\%$),
+but adaptation activates 10~optional arcs at a fixed-cost premium of
+only $\$12{,}297$, cutting variable cost by $\$110{,}540$ and
+landing at $Z_A = \$5{,}307{,}901$ ($+19.15\%$). The greenfield
+benchmark $Z_F = \$5{,}307{,}084$ ($+19.13\%$) improves on A by a
+further $\$817$ only, adaptation captures $99.2\%$ of the
+greenfield benefit. T3 is the only feasible scenario in which the
+\emph{flexibility value} $Z_R - Z_A = \$98{,}244$ is economically
+meaningful: when hub-handling costs rise across the board, the
+solver gains by bypassing congested hub corridors via
+direct warehouse-to-warehouse links such as A185 (W3$\rightarrow$W1),
+A199 (W4$\rightarrow$W3 sea) and A317 (W4$\rightarrow$C30). The
+ten activated arcs are the operationally most valuable
+``insurance'' arcs in the entire scenario library. Since the fixed cost of pre-activating all ten arcs (\$12{,}297) 
+is negligible relative to the flexibility value they unlock 
+(\$98{,}244), these arcs are strong candidates for inclusion in 
+the baseline network design as a low-cost seasonal hedge.
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario T3 (\$).}
+\label{tab:cost_decomp_t3}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\midrule
+\multicolumn{5}{l}{\textit{Fixed costs}} \\
+~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
+~~WH opening (new) & \$0 & \$0 & \$0 & \$22,046 \\
+~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
+~~Arc activation (new) & \$0 & \$0 & \$12,297 & \$31,119 \\
+\midrule
+\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$623,643 & \$760,627 & \$742,314 & \$742,314 \\
+~~B (Semiconductors) & \$2,696,067 & \$3,407,734 & \$3,317,083 & \$3,317,083 \\
+~~C (Battery Comp.) & \$938,415 & \$1,196,099 & \$1,194,522 & \$1,194,522 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$5,406,145 & \$5,307,901 & \$5,307,084 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+951,344 & \$+853,101 & \$+852,284 \\
+$\Delta Z$ (\%) & --- & +21.4\% & +19.2\% & +19.1\% \\
+Flex.\ value $Z_R - Z_A$ & --- & \multicolumn{2}{c}{\$98,244} & --- \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\vspace{0pt}
+\begin{table}[H]
+\centering
+\caption{Network changes vs.\ baseline --- scenario T3.}
+\label{tab:network_t3}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llllr}
+\toprule
+\textbf{Strategy} & \textbf{Arc} & \textbf{Route} & \textbf{Mode} & \textbf{Fixed cost (\$)} \\
+\midrule
+R & \multicolumn{4}{l}{No change vs.\ baseline} \\
+\midrule
+A & A185 & W3$\to$W1 & road & \$661 \\
+ & A188 & W1$\to$W12 & sea & \$683 \\
+ & A190 & W1$\to$W14 & sea & \$1,650 \\
+ & A199 & W4$\to$W3 & sea & \$1,671 \\
+ & A210 & W5$\to$W15 & road & \$1,147 \\
+ & A223 & W14$\to$W12 & sea & \$743 \\
+ & A224 & W12$\to$C1 & road & \$1,718 \\
+ & A241 & W2$\to$C5 & sea & \$2,228 \\
+ & A251 & W2$\to$C9 & road & \$797 \\
+ & A317 & W4$\to$C30 & road & \$1,000 \\
+\midrule
+F & A185 & W3$\to$W1 & road & \$661 \\
+ & A188 & W1$\to$W12 & sea & \$683 \\
+ & A190 & W1$\to$W14 & sea & \$1,650 \\
+ & A199 & W4$\to$W3 & sea & \$1,671 \\
+ & A210 & W5$\to$W15 & road & \$1,147 \\
+ & A223 & W14$\to$W12 & sea & \$743 \\
+ & A224 & W12$\to$C1 & road & \$1,718 \\
+ & A241 & W2$\to$C5 & sea & \$2,228 \\
+ & A251 & W2$\to$C9 & road & \$797 \\
+ & A317 & W4$\to$C30 & road & \$1,000 \\
+ & A225 & W11$\to$C1 & road & (deactivated) \\
+\midrule
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\vspace{0pt}
+\paragraph{S2 : Korea--Europe corridor.}
+The blocked arcs are simply not part of the baseline optimal flow:
+$Z_R = Z_A = Z_F = Z^*$, $\Delta Z = 0$. The corridor was a feasible
+but inactive option in Phase~1 and its removal has no economic effect.
+This is a useful negative result: not every shock translates into a
+disruption.
+
+
+\subsubsection*{Infeasible scenarios (S1, S3)}
+
+\paragraph{Reading the table for S1 and S3.}
+Suppliers~S4, S5, S6 (semiconductors) and~S9 (battery components)
+connect to the network exclusively through hub~H3. Removing H3 leaves
+$2{,}222$ units of~B and $631$ units of~C with no outgoing path
+under strategies R and~A. The corresponding logistics cost
+($Z_R \approx \$1{,}343{,}415$ for S1, $Z_R \approx \$1{,}493{,}239$
+for S3) is \emph{cheaper than the baseline} only because two thirds
+of $B$ and one third of~$C$ are simply not produced or shipped, the
+\$$2.853$ billion penalty is excluded from $Z_{\text{log}}$ (no economic sense).
+Under~F, four emergency arcs from S4, S5, S6 (to H2) and S9 (to H2)
+are activated at a $\gamma = 2.5$ spot-market premium, restoring full
+service at $Z_F = \$8{,}088{,}281$ (S1) and $Z_F = \$8{,}443{,}935$
+(S3). Table~\ref{tab:s1s3_unmet} reports the unmet demand per
+strategy and product.
+
+\begin{table}[H]
+\centering
+\caption{Unmet demand (units) under S1 and~S3.}
+\label{tab:s1s3_unmet}
+\small
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Sc.} & \textbf{Product} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\midrule
+S1, S3 & B Semiconductors      & 2{,}222 & 2{,}222 & 0 \\
+S1, S3 & C Battery comp.        &   631 &   631 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Cost decomposition under strategy~F --- infeasible scenarios S1 and~S3 (\$).
+         Only strategy~F is shown; $Z_R$ and $Z_A$ are not comparable to $Z^*$
+         due to unmet demand (see Table~\ref{tab:s1s3_unmet}).}
+\label{tab:cost_decomp_s1s3}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{S1 (F)} & \textbf{S3 (F)} \\
+\midrule
+\multicolumn{4}{l}{\textit{Fixed costs}} \\
+~~WH opening              & \$22,046 & \$15,915$^\dagger$ & \$15,915$^\dagger$ \\
+~~Arc activation          & \$19,638 & \$16,546           & \$18,098           \\
+\midrule
+\multicolumn{4}{l}{\textit{Variable transport costs --- standard arcs}} \\
+~~A (Fertilizers)         & \$623,643 & \$638,046  & \$714,716  \\
+~~B (Semiconductors)      & \$2,696,067 & \$1,651,753  & \$1,828,643  \\
+~~C (Battery Comp.)       & \$938,415 & \$938,493  & \$1,039,036  \\
+\midrule
+\multicolumn{4}{l}{\textit{Variable transport costs --- emergency arcs ($\gamma = 2.5$)}} \\
+~~B (Semiconductors)      & --- & \$4,202,243 & \$4,202,243 \\
+~~C (Battery Comp.)       & --- & \$625,284   & \$625,284   \\
+\midrule
+\textbf{Total $Z_F$}      & \$4,454,801 & \$8,088,281 & \$8,443,935 \\
+\midrule
+$\Delta Z_F$ vs $Z^*$     & ---         & \$+3,633,480 & \$+3,989,134 \\
+$\Delta Z_F$ (\%)         & ---         & $+81.6\%$    & $+89.6\%$    \\
+\bottomrule
+\end{tabular}%
+}\\[4pt]
+\footnotesize
+$^\dagger$ W5, W6, W8 closed under greenfield redesign; 11 warehouses remain open
+at a combined cost of \$15,915 vs.\ \$22,046 in the baseline.
+
+\end{table}
+
+
+
+\paragraph{Interpretation as a conditional lower bound.}
+$Z_F(S1) = \$8{,}088{,}281$ should be read as ``the cheapest
+network that delivers \emph{all} demand under the closure of~H3,
+given that we must reach S4, S5, S6, S9 through a spot-market
+emergency arc at a $2.5\times$ premium''. It is the only strategy
+that is fully comparable to the baseline because it is the only one
+that delivers the same service. The greenfield network closes three
+warehouses (W5, W6, W8) and activates three optional arcs, but the
+dominant cost driver is the variable transport bill of
+\$8{,}055{,}819, nearly twice the baseline equivalent
+(\$4{,}258{,}125), driven almost entirely by the emergency arc
+procurement for products~B and~C. The closure of~H3 alone therefore
+costs $Z_F(S1) - Z^* = \$3{,}633{,}480$ ($+81.6\%$); under~S3
+the combination with the T2 energy shock pushes this to $+89.6\%$.
+These are the two scenarios for which the baseline simply cannot
+continue operating without paying a structural premium.
+
+\subsection{Strategic Assessment}
+\label{sec:phase2_strategic}
+
+\paragraph{Most damaging scenario.}
+On the comparable $\Delta Z_F$ ledger, S3 dominates everything else
+at $+\$3{,}989{,}134$ ($+89.55\%$), with S1 a close second at
+$+\$3{,}633{,}480$ ($+81.56\%$). Both are driven by the same
+structural cause: the loss of hub~H3 and the forced procurement of
+products~B and~C via expensive emergency arcs. S3 adds the T2 modal
+shock on top of S1, which raises sea-mode unit costs by $10\%$ along
+the very arcs that are most relied upon under the H3 closure, hence
+the additional $\$355{,}654$ premium relative to S1 alone. Among
+\emph{purely tariff/energy} scenarios, T3 (hub surcharge) is the most
+damaging at $+\$852{,}284$ ($+19.13\%$), more than five times the T1
+tariff and roughly $1.8\times$ the T2 energy shock. The pattern is
+unambiguous: shocks that target the network's \emph{topology}
+(H3 closure) are an order of magnitude more dangerous than shocks
+that target its \emph{prices}.
+
+\paragraph{Structural weakness of the baseline network.}
+Two vulnerabilities recur across the analysis. The first is the
+\emph{exclusive dependence on H3} (Singapore) for the
+semiconductor supplier cluster (S4 Busan, S5 Taipei, S6 Yokohama)
+and for one of the battery-component suppliers (S9 Chengdu): four
+out of nine suppliers have only one viable hub of entry, and
+losing that hub strands $48.7\%$ of the supply base.
+The second is the recurrence of the same handful of adaptation
+arcs across multiple disruptions. Under strategy~A, arcs
+A188 (W1$\rightarrow$W12, sea) and A224 (W12$\rightarrow$C1, road)
+are newly activated under T1, T3, S1 \emph{and}~S3; A317
+(W4$\rightarrow$C30, road) appears under T3, S1 and~S3.
+These arcs are not specific to any particular shock, they
+are the natural relief paths for the baseline whenever it is
+perturbed. Their absence from the Phase~1 optimal solution
+indicates that the baseline cost-minimisation horizon is slightly
+too narrow: a small set of fixed-cost activations would have made
+the network materially more robust at very limited expense.
+
+\paragraph{Cost of resilience.}
+The ``resilience premium'' for being protected against S1 ex ante is
+$Z_F(S1) - Z^* = \$3{,}633{,}480$, or $+81.56\%$ of the baseline. No
+realistic preventive investment programme would absorb such a
+premium continuously, but the calculation isolates the part of the
+disruption cost that is \emph{structural} rather than operational.
+Crucially, for all feasible scenarios the greenfield cost $Z_F$ sits
+within $0$--$20\%$ of $Z^*$ (T2: $+10.6\%$; T1: $+3.5\%$;
+T3: $+19.1\%$; S2: $0\%$), whereas for S1/S3 it explodes to
+$+81$--$90\%$. The greenfield benchmark is, in other words,
+``close to baseline'' for price shocks and ``far from baseline''
+for topology shocks. This dichotomy will guide the Phase~3 design,
+which targets the geographic chokepoints, Suez and Panama,
+that combine elements of both.
 
