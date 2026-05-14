@@ -254,9 +254,9 @@ only through Asia$\leftrightarrow$Europe legs.
 ~~Arc activation (new)  & \$0 & \$0 \\
 \midrule
 \multicolumn{3}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$623,643 & \$639,128 \\
-~~B (Semiconductors) & \$2,696,067 & \$3,009,410 \\
-~~C (Battery Comp.) & \$938,415 & \$1,074,477 \\
+~~A (Fertilizers) & \$638,198 & \$639,128 \\
+~~B (Semiconductors) & \$2,814,741 & \$3,009,410 \\
+~~C (Battery Comp.) & \$960,176 & \$1,074,477 \\
 \midrule
 \textbf{Total $Z$} & \$4,454,801 & \$4,764,699 \\
 \midrule
@@ -293,9 +293,9 @@ to survive.
 ~~Arc activation (new)  & \$0 & \$0 & \$1,671 & \$21,309 \\
 \midrule
 \multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$623,643 & \$638,198 & \$638,198 & \$638,198 \\
-~~B (Semiconductors) & \$2,696,067 & \$2,823,198 & \$2,818,343 & \$2,818,343 \\
-~~C (Battery Comp.) & \$938,415 & \$960,368 & \$960,368 & \$960,369 \\
+~~A (Fertilizers) & \$638,198 & \$638,198 & \$638,198 & \$638,198 \\
+~~B (Semiconductors) & \$2,814,741 & \$2,823,198 & \$2,818,343 & \$2,818,343 \\
+~~C (Battery Comp.) & \$960,176 & \$960,368 & \$960,368 & \$960,369 \\
 \midrule
 \textbf{Total $Z$} & \$4,454,801 & \$4,463,450 & \$4,460,265 & \$4,460,266 \\
 \midrule
@@ -315,8 +315,35 @@ does not add binding pressure beyond the cost shock alone:
 once the solver reroutes away from the most expensive Suez arcs,
 the residual capacity on those arcs is no longer the active
 constraint. The combined disruption cost ($+7.72\%$) is
-slightly larger than S4.1 ($+6.96\%$) but not additive ---
+slightly larger than S4.1 ($+6.96\%$) but not additive, 
 the interaction between the two mechanisms is sublinear.
+
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario S4.3 (\$). All three strategies (R, A, F) yield identical costs.}
+\label{tab:cost_decomp_s4_3}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R / A / F} \\
+\midrule
+\multicolumn{3}{l}{\textit{Fixed costs}} \\
+~~WH opening & \$22,046 & \$22,046 \\
+~~Arc activation & \$19,638 & \$19,638 \\
+\midrule
+\multicolumn{3}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$638,198 & \$639,128 \\
+~~B (Semiconductors) & \$2,814,741 & \$3,023,541 \\
+~~C (Battery Comp.) & \$960,176 & \$1,094,505 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$4,798,860 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+344,059 \\
+$\Delta Z$ (\%) & --- & +7.72\% \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
 
 \subsubsection*{Panama group (S5.1--S5.3)}
 
@@ -329,6 +356,35 @@ bypass arcs (A223 W14$\rightarrow$W12 sea; A224
 W12$\rightarrow$C1 road) that route Americas-bound flows through
 non-Panama lanes. The Panama corridor carries a smaller baseline
 share than Suez, and natural detours are available.
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario S5.1 (\$).}
+\label{tab:cost_decomp_s5_1}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\midrule
+\multicolumn{5}{l}{\textit{Fixed costs}} \\
+~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
+~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
+~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
+~~Arc activation (new)  & \$0 & \$0 & \$2,461 & \$21,282 \\
+\midrule
+\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$638,198 & \$638,566 & \$637,799 & \$637,799 \\
+~~B (Semiconductors) & \$2,814,741 & \$2,885,746 & \$2,883,843 & \$2,883,843 \\
+~~C (Battery Comp.) & \$960,176 & \$1,116,188 & \$1,108,530 & \$1,108,530 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$4,682,184 & \$4,674,317 & \$4,673,500 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+227,384 & \$+219,516 & \$+218,700 \\
+$\Delta Z$ (\%) & --- & +5.10\% & +4.93\% & +4.91\% \\
+Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$7,868} & --- \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
 
 \paragraph{S5.2 : Panama capacity reduction.}
 The $\times 0.40$ capacity cut on Panama arcs is almost
@@ -337,6 +393,36 @@ baseline Panama flows are well below the residual corridor
 capacity, so the constraint never binds. The flexibility value
 (\$2{,}718) is correspondingly small. This is the canal scenario
 GlobalFlow is best positioned to absorb.
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario S5.2 (\$).}
+\label{tab:cost_decomp_s5_2}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\midrule
+\multicolumn{5}{l}{\textit{Fixed costs}} \\
+~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
+~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
+~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
+~~Arc activation (new)  & \$0 & \$0 & \$1,718 & \$20,539 \\
+\midrule
+\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$638,198 & \$638,566 & \$637,799 & \$637,799 \\
+~~B (Semiconductors) & \$2,814,741 & \$2,885,746 & \$2,883,843 & \$2,883,843 \\
+~~C (Battery Comp.) & \$960,176 & \$1,116,188 & \$1,108,530 & \$1,108,530 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$4,465,620 & \$4,462,902 & \$4,462,851 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+10,820 & \$+8,101 & \$+8,050 \\
+$\Delta Z$ (\%) & --- & +0.24\% & +0.18\% & +0.18\% \\
+Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$2,718} & --- \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
 
 \paragraph{S5.3 : Panama combined shock.}
 S5.3 produces identical costs to S5.1 ($Z_F = \$4{,}673{,}500$,
@@ -347,6 +433,35 @@ non-binding: the optimal solution already avoids Panama, so
 restricting its capacity costs nothing additional. The Panama
 vulnerability is a \emph{price} vulnerability, not a
 \emph{throughput} vulnerability.
+\begin{table}[H]
+\centering
+\caption{Cost decomposition --- scenario S5.3 (\$).}
+\label{tab:cost_decomp_s5_3}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\midrule
+\multicolumn{5}{l}{\textit{Fixed costs}} \\
+~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
+~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
+~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
+~~Arc activation (new)  & \$0 & \$0 & \$2,461 & \$21,282 \\
+\midrule
+\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
+~~A (Fertilizers) & \$638,198 & \$638,566 & \$637,799 & \$637,799 \\
+~~B (Semiconductors) & \$2,814,741 & \$2,885,746 & \$2,883,843 & \$2,883,843 \\
+~~C (Battery Comp.) & \$960,176 & \$1,116,188 & \$1,108,530 & \$1,108,530 \\
+\midrule
+\textbf{Total $Z$} & \$4,454,801 & \$4,682,184 & \$4,674,317 & \$4,673,500 \\
+\midrule
+$\Delta Z$ vs $Z^*$ & --- & \$+227,384 & \$+219,516 & \$+218,700 \\
+$\Delta Z$ (\%) & --- & +5.10\% & +4.93\% & +4.91\% \\
+Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$7,868} & --- \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
 
 \paragraph{Suez versus Panama.}
 The cross-canal comparison is unambiguous on the cost dimension.
