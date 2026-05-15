@@ -483,7 +483,7 @@ at a combined cost of \$15,915 vs.\ \$22,046 in the baseline.
 
 \paragraph{Interpretation as a conditional lower bound.}
 $Z_F(S1) = \$8{,}088{,}281$ should be read as ``the cheapest
-network that delivers \emph{all} demand under the closure of~H3,
+network that delivers all demand under the closure of~H3,
 given that we must reach S4, S5, S6, S9 through a spot-market
 emergency arc at a $2.5\times$ premium''. It is the only strategy
 that is fully comparable to the baseline because it is the only one
@@ -510,16 +510,17 @@ products~B and~C via expensive emergency arcs. S3 adds the T2 modal
 shock on top of S1, which raises sea-mode unit costs by $10\%$ along
 the very arcs that are most relied upon under the H3 closure, hence
 the additional $\$355{,}654$ premium relative to S1 alone. Among
-\emph{purely tariff/energy} scenarios, T3 (hub surcharge) is the most
+purely tariff/energy scenarios, T3 (hub surcharge) is the most
 damaging at $+\$852{,}284$ ($+19.13\%$), more than five times the T1
 tariff and roughly $1.8\times$ the T2 energy shock. The pattern is
-unambiguous: shocks that target the network's \emph{topology}
+unambiguous: shocks that target the network's topology
 (H3 closure) are an order of magnitude more dangerous than shocks
-that target its \emph{prices}.
+that target prices.
+
 
 \paragraph{Structural weakness of the baseline network.}
 Two vulnerabilities recur across the analysis. The first is the
-\emph{exclusive dependence on H3} (Singapore) for the
+exclusive dependence on H3 (Singapore) for the
 semiconductor supplier cluster (S4 Taipei, S5 Seoul, S6 Yokohama)
 and for one of the battery-component suppliers (S9 Chengdu): four
 out of nine suppliers have only one viable hub of entry, and
@@ -527,7 +528,7 @@ losing that hub strands $48.7\%$ of the supply base.
 The second is the recurrence of the same handful of adaptation
 arcs across multiple disruptions. Under strategy~A, arcs
 A188 (W1$\rightarrow$W12, sea) and A224 (W12$\rightarrow$C1, road)
-are newly activated under T1, T3, S1 \emph{and}~S3; A317
+are newly activated under T1, T3, S1 and~S3; A317
 (W4$\rightarrow$C30, road) appears under T3, S1 and~S3.
 These arcs are not specific to any particular shock, they
 are the natural relief paths for the baseline whenever it is
@@ -566,7 +567,7 @@ every major disruption. Their combined fixed activation cost
 is \$12{,}297. They carry zero flow under normal conditions but
 provide immediate rerouting capacity with no adaptation lag.
  
-Second, we inject four \emph{synthetic bypass arcs}:
+Second, we inject four synthetic bypass arcs:
 SYN\_S4\_H2 (Taipei $\to$ Dubai), SYN\_S5\_H2 (Seoul $\to$ Dubai),
 SYN\_S6\_H2 (Yokohama $\to$ Dubai), and SYN\_S9\_H2
 (Chengdu $\to$ Dubai). These give every supplier currently
@@ -576,7 +577,7 @@ each supplier's existing cost-per-km on its S$\to$H3 arc,
 scaled to the conservative distance proxy $d_{s,H3} + d_{H3,H2}$
 and adjusted for the Asia$\leftrightarrow$MiddleEast tariff zone
 ($+5\%$). To make the case as hard as possible to make, we apply
-a pessimism factor of $\times 1.5$ to each estimate
+a \textbf{pessimism factor of $\times 1.5$} to each estimate
 before inclusion. The resulting unit costs are therefore
 50\%~above a conservative upper bound on the true maritime cost.
 Under normal conditions all four arcs carry zero flow (the

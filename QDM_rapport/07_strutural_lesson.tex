@@ -1,0 +1,85 @@
+%!TEX root = main.tex
+\paragraph{Topology versus price shocks: a quantified gap.}
+The scenario library spans a wide range of disruption types, but
+the results reveal a clean hierarchy. Topological shocks,
+those that physically disconnect suppliers from the network,
+are categorically more destructive than price shocks of any
+severity. The worst purely price-based scenario, T3 (hub
+surcharge $+30\%$), costs $\Delta Z_F = +\$852{,}284$
+($+19.1\%$). The worst topological scenario, S3 (H3 closure
+combined with energy shock), costs
+$\Delta Z_F = +\$3{,}989{,}134$ ($+89.6\%$). The ratio is:
+\[
+  \frac{\Delta Z_F(\text{S3})}{\Delta Z_F(\text{T3})}
+  = \frac{89.6\%}{19.1\%} \approx 4.7\times
+\]
+Topological shocks are roughly five times more
+destructive than the most severe price shock tested, even
+before accounting for the unmet-demand dimension of S1 and S3
+under strategies R and A. The intuition is structural: a price
+shock raises variable costs and the solver can partially reroute
+around the most expensive lanes; a topological shock severs
+connectivity entirely, leaving no routing alternative and forcing
+spot-market procurement at a $2.5\times$ premium. Scenario~S4
+(Suez corridor, $+7.7\%$) confirms this: an $+80\%$ cost
+increase on 39 sea arcs, severe by any measure, propagates
+as only a $+7.7\%$ system-wide cost increase because alternative
+routes exist. The H3 closure propagates as $+81.6\%$ because
+they do not.
+ 
+\paragraph{Modal exposure and product vulnerability.}
+The GlobalFlow instance uses exclusively two transport modes:
+sea (240 arcs, long-haul inter-node legs) and
+road (77 arcs, last-mile warehouse-to-customer
+delivery). No air freight arcs are present in the network.
+Table~\ref{tab:modal_split} reports the resulting modal split
+by product in the baseline optimal solution.
+ 
+\begin{table}[H]
+\centering
+\caption{Baseline modal split by product — flow volume and
+         transport cost share.}
+\label{tab:modal_split}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{Sea}} &
+  \multicolumn{2}{c}{\textbf{Road}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Product} & Volume & Cost & Volume & Cost \\
+\midrule
+A — Fertilizers        & 75\% & 80\% & 25\% & 20\% \\
+B — Semiconductors     & 82\% & 96\% & 18\% &  4\% \\
+C — Battery Components & 74\% & 91\% & 26\% &  9\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+ 
+Three findings stand out. First, the absence of air freight has
+a direct implication for scenario~T2 (energy crisis: sea~$+10\%$,
+road~$+20\%$, air~$+60\%$): the $+60\%$ air surcharge is
+structurally irrelevant for GlobalFlow, the network
+carries no air flows to penalise. The effective shock is limited
+to sea and road, which is why all three strategies tie exactly
+under T2 ($Z_R = Z_A = Z_F$): the baseline modal mix is already
+optimal under a uniform per-mode multiplier, and no rerouting or
+reconfiguration can improve on it.
+ 
+Second, product~B (Semiconductors) is the most
+sea-intensive by cost (96\% of its variable transport cost),
+making it the largest absolute contributor to the T2 disruption
+cost ($+\$293{,}217$, or $+10.4\%$ on its variable cost base).
+Product~A (Fertilizers), despite lower sea intensity by cost
+(80\%), is proportionally \textit{more} affected ($+12.0\%$)
+because its road component carries a higher cost weight relative
+to product~B, and road is penalised at $+20\%$ versus sea's
+$+10\%$.
+ 
+Third, canal disruptions (S4) are structurally
+contained by the road share. The 18--26\% road volumes of all
+three products are entirely unaffected by a Suez corridor shock,
+providing a natural partial buffer. This explains why even the
+most severe canal scenario ($+7.7\%$) remains far below the
+modal-level energy shock ($+10.6\%$): the road component acts
+as a cost-insensitive cushion that limits the propagation of any
+sea-corridor disruption.
