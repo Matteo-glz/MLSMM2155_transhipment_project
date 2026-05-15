@@ -520,7 +520,7 @@ that target its \emph{prices}.
 \paragraph{Structural weakness of the baseline network.}
 Two vulnerabilities recur across the analysis. The first is the
 \emph{exclusive dependence on H3} (Singapore) for the
-semiconductor supplier cluster (S4 Busan, S5 Taipei, S6 Yokohama)
+semiconductor supplier cluster (S4 Taipei, S5 Seoul, S6 Yokohama)
 and for one of the battery-component suppliers (S9 Chengdu): four
 out of nine suppliers have only one viable hub of entry, and
 losing that hub strands $48.7\%$ of the supply base.
@@ -537,17 +537,146 @@ too narrow: a small set of fixed-cost activations would have made
 the network materially more robust at very limited expense.
 
 \paragraph{Cost of resilience.}
-The ``resilience premium'' for being protected against S1 ex ante is
-$Z_F(S1) - Z^* = \$3{,}633{,}480$, or $+81.56\%$ of the baseline. No
-realistic preventive investment programme would absorb such a
-premium continuously, but the calculation isolates the part of the
-disruption cost that is \emph{structural} rather than operational.
-Crucially, for all feasible scenarios the greenfield cost $Z_F$ sits
-within $0$--$20\%$ of $Z^*$ (T2: $+10.6\%$; T1: $+3.5\%$;
-T3: $+19.1\%$; S2: $0\%$), whereas for S1/S3 it explodes to
-$+81$--$90\%$. The greenfield benchmark is, in other words,
-``close to baseline'' for price shocks and ``far from baseline''
-for topology shocks. This dichotomy will guide the Phase~3 design,
-which targets the geographic chokepoints, Suez and Panama,
-that combine elements of both.
+The greenfield benchmark sits within $0$--$20\%$ of $Z^*$ for all
+price shocks (T2: $+10.6\%$; T1: $+3.5\%$; T3: $+19.1\%$; S2:~$0\%$),
+whereas for S1/S3 it explodes to $+81$--$90\%$. This dichotomy ---
+``close to baseline'' for price shocks, ``far from baseline'' for
+topology shocks --- motivates the quantitative resilience analysis
+in Section~\ref{sec:resilient_baseline} below.
 
+\subsection{A Resilient Baseline?}
+\label{sec:resilient_baseline}
+ 
+The Phase~2 analysis reveals two structural weaknesses that
+recur across disruptions: the single-point-of-failure at
+hub~H3~(Singapore), and a set of inter-warehouse arcs that
+strategy~A independently re-activates under T1, T3, S1, and~S3
+as natural relief paths. Both can be addressed at the baseline
+design stage. We quantify the cost of doing so.
+ 
+\paragraph{Design of the resilient baseline.}
+We augment the Phase~1 model with two modifications, then
+re-solve from scratch.
+ 
+First, we force-activate the ten ``insurance arcs'' identified
+in Section~\ref{sec:phase2_strategic}: A185, A188, A190, A199,
+A210, A223, A224, A241, A251, and A317. These are the
+warehouse-to-warehouse arcs that the solver re-discovers under
+every major disruption. Their combined fixed activation cost
+is \$12{,}297. They carry zero flow under normal conditions but
+provide immediate rerouting capacity with no adaptation lag.
+ 
+Second, we inject four \emph{synthetic bypass arcs}:
+SYN\_S4\_H2 (Taipei $\to$ Dubai), SYN\_S5\_H2 (Seoul $\to$ Dubai),
+SYN\_S6\_H2 (Yokohama $\to$ Dubai), and SYN\_S9\_H2
+(Chengdu $\to$ Dubai). These give every supplier currently
+exclusive to H3 an alternative hub-of-entry, eliminating the
+single point of failure entirely. Unit costs are estimated from
+each supplier's existing cost-per-km on its S$\to$H3 arc,
+scaled to the conservative distance proxy $d_{s,H3} + d_{H3,H2}$
+and adjusted for the Asia$\leftrightarrow$MiddleEast tariff zone
+($+5\%$). To make the case as hard as possible to make, we apply
+a pessimism factor of $\times 1.5$ to each estimate
+before inclusion. The resulting unit costs are therefore
+50\%~above a conservative upper bound on the true maritime cost.
+Under normal conditions all four arcs carry zero flow (the
+existing H3 route is cheaper); they activate only if H3 is
+unavailable.
+ 
+\paragraph{Resilient baseline cost ($Z^*_{\text{res}}$).}
+Table~\ref{tab:resilient_baseline} reports the result of
+re-solving Phase~1 under these constraints.
+ 
+\begin{table}[H]
+\centering
+\caption{Resilient vs.\ standard baseline cost decomposition (\$).}
+\label{tab:resilient_baseline}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Component} & \textbf{Standard $Z^*$} & \textbf{Resilient $Z^*_{\text{res}}$} \\
+\midrule
+WH opening cost         & 22{,}046  & 22{,}046  \\
+Arc activation cost     & 19{,}638  & 31{,}936  \\
+Variable transport      & 4{,}413{,}116 & 4{,}411{,}332 \\
+\midrule
+\textbf{Total}          & \textbf{4{,}454{,}801} & \textbf{4{,}465{,}314} \\
+\midrule
+Resilience surcharge    & ---       & $+$\$10{,}513 \\
+Surcharge (\%)          & ---       & $+0.24\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+ 
+The resilient baseline costs \$10{,}513 more than the standard
+one, an increase of just $+0.24\%$. The same 14 warehouses
+remain open. The arc activation cost increases by \$12{,}297
+(the insurance arcs), partially offset by a marginal reduction
+in variable routing (\$1{,}784) as the solver exploits the newly
+available warehouse links. Structurally, nothing changes under
+normal operating conditions.
+ 
+\paragraph{Impact on Scenario S1.}
+Under the standard baseline, H3 closure strands all four
+semiconductor and battery-component suppliers with no outgoing
+path, forcing procurement via spot-market emergency arcs at a
+$\gamma = 2.5$ premium and yielding
+$Z_F(\text{S1}) = \$8{,}088{,}281$ ($+81.6\%$). Under the
+resilient baseline, every supplier routes through
+SYN\_S$x$\_H2 at pessimistic-but-contractual unit costs,
+restoring full demand satisfaction. Table~\ref{tab:resilient_s1}
+summarises the comparison; Figure~\ref{tab:resilient_s1} shows
+that all 6{,}197~units of demand are met under both strategies.
+ 
+\begin{table}[H]
+\centering
+\caption{S1 disruption cost: standard vs.\ resilient baseline.
+         Resilient costs use pessimistic synthetic arc pricing
+         ($\times 1.5$ on conservative distance estimates).}
+\label{tab:resilient_s1}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+& \textbf{Standard} & \textbf{Resilient (pess.)} \\
+\midrule
+$Z_F(\text{S1})$        & \$8{,}088{,}281 & \$6{,}311{,}675 \\
+$\Delta Z$ vs $Z^*$     & $+\$3{,}633{,}480$ & $+\$1{,}846{,}361$ \\
+$\Delta Z$ (\%)         & $+81.6\%$       & $+41.3\%$        \\
+Demand met              & Partial (37\%)  & 100\%            \\
+\midrule
+\textbf{Savings}        & \multicolumn{2}{r}{$\mathbf{+\$1{,}776{,}606}$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+ 
+The resilient network reduces the disruption cost of a Singapore
+hub closure by 40~percentage points, from $+81.6\%$
+to $+41.3\%$, while meeting 100\% of demand at all times.
+ 
+\paragraph{The resilience ratio.}
+\[
+  \frac{\text{Savings under S1}}{\text{Resilience surcharge}}
+  = \frac{\$1{,}776{,}606}{\$10{,}513}
+  \approx \mathbf{169}
+\]
+For every dollar added to the baseline cost, the resilient
+network saves approximately \textbf{\$169} under a topological
+shock of S1 magnitude. Critically, this ratio holds even under
+pessimistic unit costs ($\times 1.5$): if real maritime
+contracting costs are lower, as the direct-route geography
+suggests, the ratio would be higher still.
+ 
+\begin{tcolorbox}[notebox, title={Resilience key finding}]
+\small
+Pre-activating ten inter-warehouse arcs and adding four synthetic
+bypass arcs (one per stranded supplier) raises $Z^*$ by only
+$+0.24\%$ ($+\$10{,}513$) and eliminates the H3 single point
+of failure entirely. Under a Singapore hub closure, this
+investment reduces the disruption cost by 40~percentage points
+and saves \$1{,}776{,}606, a resilience ratio of $\approx\$169$
+saved per \$1 invested, computed under deliberately pessimistic
+cost assumptions. The case for proactive network hardening is
+compelling: the cost of building resilience is two orders of
+magnitude smaller than the cost of experiencing the disruption
+it protects against.
+\end{tcolorbox}

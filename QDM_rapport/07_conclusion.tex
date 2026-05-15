@@ -1,0 +1,53 @@
+ %!TEX root = main.tex
+ 
+\paragraph{Most damaging scenario.}
+Scenario~S3, the simultaneous energy crisis and Singapore hub
+closure,  is the most destructive disruption in the scenario
+library, with $\Delta Z_F = +\$3{,}989{,}134$ ($+89.6\%$ above
+$Z^*$). Scenario~S1 (hub closure alone) is a close second at
+$+81.6\%$. Both are an order of magnitude more destructive than
+the worst purely price-based disruption: T3 (hub surcharge)
+costs $+19.1\%$, and even the Suez corridor crisis~S4 reaches
+only $+7.7\%$. The ratio of worst topological to worst price
+disruption is $89.6\,/\,19.1 \approx 4.7\times$. The asymmetry
+is structural: a price shock raises the cost of existing routes
+uniformly and the network re-optimises around them; a topological
+shock disconnects suppliers from the network entirely, leaving
+no routing alternative and forcing spot-market procurement at
+a $2.5\times$ premium. Geographic chokepoints (Suez Canal,
+$+7.7\%$) are manageable; topological chokepoints (H3,
+$+81.6\%$) are existential.
+ 
+\paragraph{Persistent structural weakness.}
+Two structural vulnerabilities recur across the entire analysis.
+The first and most severe is the exclusive dependence of
+four suppliers on hub~H3~(Singapore): S4~(Taipei),
+S5~(Seoul), S6~(Yokohama), and S9~(Chengdu) have no alternative
+hub connection, making H3 a hard single point of failure for
+48.7\% of the supply base. The min-cut analysis
+(Section~\ref{sec:phase1}) quantifies this: removing H3 collapses
+network throughput by 46\%, more than three times the impact of
+any other node. The second vulnerability is subtler: the same
+ten inter-warehouse arcs (A185, A188, A190, A199, A210, A223,
+A224, A241, A251, A317) are independently re-discovered by
+strategy~A as natural relief paths under T1, T3, S1, and~S3.
+Their systematic recurrence is a signal that the Phase~1
+optimisation horizon is too narrow: it minimises operating cost
+under normal conditions while leaving an adaptation tax of up to
+\$98{,}244 (T3) payable each time a shock forces reconfiguration.
+ 
+\paragraph{Cost of resilience.}
+Section~\ref{sec:resilient_baseline} provides a direct, quantified
+answer. Forcing open the ten insurance arcs and adding four
+synthetic bypass arcs, one per stranded supplier, priced at
+$\times 1.5$ above a conservative distance estimate,
+raises $Z^*$ by \$10{,}513 ($+0.24\%$). Under a Singapore hub
+closure (S1), this \$10{,}513 investment reduces the disruption
+cost from $+81.6\%$ to $+41.3\%$ and saves \$1{,}776{,}606,
+delivering a resilience ratio of \$169 saved per \$1 invested.
+A network designed with robustness as a secondary objective
+alongside cost minimisation would, at negligible premium,
+eliminate the primary structural vulnerability identified
+throughout this analysis. The cost of building resilience is
+two orders of magnitude smaller than the cost of experiencing
+the disruption it protects against.

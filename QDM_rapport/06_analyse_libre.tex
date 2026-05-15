@@ -1,247 +1,95 @@
 %!TEX root = main.tex
 
-\subsection{Motivation and Design Rationale}
+\subsection{Motivation and Scenario Design}
+\label{sec:s4_motivation}
 
-Phase~2 subjects the GlobalFlow network to six scenarios drawn directly
-from the assignment specification. While these scenarios cover a broad
-range of disruption types : tariff shocks, energy crises, node loss,
-and corridor blockades. They share a common geographic focus on the
-East Asian hub cluster and transatlantic trade lanes.
-A structural blind spot remains: the network's dependence on the two
-great maritime chokepoints that underpin global seaborne trade, namely
-the Suez and Panama canals.
+Phase~2 subjects the GlobalFlow network to six disruption scenarios
+drawn from the assignment specification. These scenarios cover a
+broad typological range of tariff shocks, energy crises, node loss and
+corridor blockades, but share a common geographic focus on the East
+Asian hub cluster and the transatlantic/transpacific trade lanes.
+One structural blind spot remains: the network's dependence on the
+Suez Canal, the single most critical maritime chokepoint for
+GlobalFlow's Europe--Asia and Europe--MiddleEast flows.
 
-Together, these two canals handle approximately 12\% of world trade
-by volume \cite{unctad2024}. Disruptions to either have historically
-propagated rapidly through global supply chains, raising freight rates,
-extending transit times, and forcing carriers to reroute through
-significantly longer alternatives. The 2021 Ever Given grounding
-blocked the Suez Canal for six days, triggering an estimated \$9.6bn
-per day in delayed trade \cite{everGiven2021}. The 2023--2024 Houthi
-attack campaign on Red Sea shipping diverted more than 50\% of normal
-Suez traffic onto the Cape of Good Hope route within three months
-\cite{drewry2024}. Simultaneously, a severe drought reduced Panama
-Canal water levels to their lowest in recorded history, forcing
-draft restrictions that cut effective throughput by nearly 40\%
-\cite{panama2024}.
+\paragraph{Real-world motivation.}
+The 2023--2024 Houthi attack campaign on Red Sea shipping is the
+largest disruption to Suez traffic in recorded history. By early 2024,
+more than 50\% of normal Suez container volumes had diverted onto the
+Cape of Good Hope route, adding roughly 9\,000\,km and 10--14 transit
+days per voyage \cite{drewry2024}. Crucially, the crisis combined
+two economically distinct mechanisms: (i)~a sharp cost increase
+as carriers rerouted around the Cape under elevated war-risk insurance
+premiums, and (ii)~a partial throughput reduction on the residual
+corridor, as the vessels that continued transiting under naval escort
+faced delays and congestion. Scenario~S4 replicates this
+dual-mechanism structure.
 
-These events are not hypothetical tail risks. They are recent,
-documented, and, crucially for GlobalFlow, they affect different
-parts of the network simultaneously. Suez disruptions primarily
-penalise Europe--Asia and Europe--MiddleEast flows, while Panama
-disruptions cut across Americas--Asia and Americas--Europe corridors.
-The Phase~2 scenarios do not capture this geography.
+\paragraph{Arc identification.}
+Affected arcs are identified dynamically at runtime using the
+zone-pair geography embedded in the instance. All sea-mode arcs
+crossing the following zone pairs are flagged as Suez-dependent:
+Europe$\leftrightarrow$Asia, Europe$\leftrightarrow$MiddleEast.
+This yields \textbf{39~sea arcs}. The identification is performed
+programmatically (no hardcoded arc list), making it robust to future
+instance changes. An assertion verifies mutual exclusivity with any
+Panama-corridor set.
 
-\subsection{Scenario Design}
-\label{sec:phase3_design}
+\paragraph{Shock parameters.}
+S4 applies both mechanisms simultaneously:
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Cost factor $\times 1.80$}: variable cost of all
+    39~Suez arcs raised by $+80\%$, reflecting the longer Cape of
+    Good Hope rerouting distance and elevated insurance.
+  \item \textbf{Capacity factor $\times 0.40$}: shared capacity of
+    all 39~Suez arcs reduced by $60\%$, reflecting the two-thirds
+    of normal Suez traffic that diverts or self-excludes.
+\end{itemize}
 
-We design six new scenarios organised into two groups of three,
-following a \emph{decomposed stress-testing} logic: each group
-isolates first the cost dimension, then the capacity dimension, then
-their combination. This structure allows us to disentangle two
-economically distinct mechanisms of canal disruption.
+Both mechanisms are implemented simultaneously; no separate cost-only
+or capacity-only variants are reported, as preliminary analysis
+(available in the supplementary code) showed that the cost shock
+already drives rerouting away from Suez arcs, after which the capacity
+constraint is no longer binding --- the combined shock therefore
+collapses to the cost-only case in terms of optimal routing, with the
++0.76~pp capacity premium being purely structural.
 
-\paragraph{Arc identification methodology.}
-The identification of affected arcs is performed dynamically at
-runtime using the zone-pair geography of the network. Each arc in
-the instance is annotated with a \texttt{zone\_from} and
-\texttt{zone\_to} pair indicating the regions it connects. For the
-Suez corridor, we identify all sea-mode arcs crossing the zone pairs
-that transit the Red Sea, Mediterranean, and Indian Ocean passages:
-Europe$\leftrightarrow$Asia, Europe$\leftrightarrow$MiddleEast,
-MiddleEast$\leftrightarrow$Asia and EastEurope$\rightarrow$MiddleEast. This yields 57~sea arcs.
+\subsection{Results}
+\label{sec:s4_results}
 
-For Panama-corridor arcs are identified as all sea arcs connecting 
-Americas$\leftrightarrow$Asia, SouthAmerica$\leftrightarrow$Asia, and 
-Americas$\leftrightarrow$SouthAmerica 
-zone pairs (65 arcs total). The last category is included under the 
-assumption that intra-American maritime freight primarily routes via 
-Pacific coast ports, making it Canal-dependent.
-This yields 122~sea arcs. 
-
-The two sets are verified to be mutually exclusive
-at runtime, ensuring no double-counting. This approach grounds the
-scenario design firmly in the actual network topology rather than
-relying on hardcoded arc lists, making the analysis robust to future
-instance changes.
-
-\paragraph{Cost shock (variants .1).}
-When a canal remains open but vessels must reroute, around the Cape
-of Good Hope for Suez, or Cape Horn for Panama, variable transport
-costs rise sharply due to the additional distance (approximately
-9\,000\,km and 12\,000\,km respectively). Arc capacities are
-unaffected: ships divert, they do not disappear. This variant models
-the carrier response to insecurity without assuming physical closure.
-The varibale cost of all affected sea arcs increases by $80\%$ ($\times 1.80$). 
-
-\paragraph{Capacity reduction (variants .2).}
-Alternatively, a canal may remain legally open but physically
-constrained, by military inspection regimes, draft restrictions due
-to drought, or insurance-driven self-exclusion by major carriers.
-In this case, the throughput of affected arcs falls while unit costs
-for vessels that do transit remain near baseline. We model this as a
-$60\%$ capacity reduction ($\times 0.40$) on all sea arcs transiting
-the respective canal corridor.
-
-\paragraph{Combined shock (variants .3).}
-The most severe scenario applies both mechanisms simultaneously:
-rerouting costs rise \emph{and} canal throughput is constrained.
-This corresponds to the situation observed during the 2024 Red Sea
-crisis, where carriers faced both elevated insurance premiums forcing
-rerouting and a partial congestion of remaining Suez traffic due to
-the residual vessels that continued transiting under escort.
-
-\subsection{Scenario Descriptions}
-\label{sec:phase3_scenarios}
-
-Table~\ref{tab:canal_scenarios} summarises the six scenarios.
+All three strategies are structurally feasible: the $\times 0.40$
+capacity reduction, while severe, leaves sufficient residual
+throughput once flows are rerouted away from the corridor.
+No penalty slack is required; all demand is met.
 
 \begin{table}[H]
 \centering
-\caption{Phase~3 canal disruption scenarios.}
-\label{tab:canal_scenarios}
+\caption{Scenario S4 results (\$). $Z^* = \$4{,}454{,}801$.}
+\label{tab:s4_results}
 \small
-\begin{tabular}{llcc}
+\begin{tabular}{lrrl}
 \toprule
-\textbf{ID} & \textbf{Shock} & \textbf{Cost} & \textbf{Cap.} \\
+\textbf{Strategy} & \textbf{$Z$} & \textbf{$\Delta Z$} & \textbf{$\Delta\%$} \\
 \midrule
-S4.1 & Suez cost shock       & $\times 1.80$ & $\times 1.00$ \\
-S4.2 & Suez capacity cut     & $\times 1.00$ & $\times 0.40$ \\
-S4.3 & Suez combined         & $\times 1.80$ & $\times 0.40$ \\
-S5.1 & Panama cost shock     & $\times 1.80$ & $\times 1.00$ \\
-S5.2 & Panama capacity cut   & $\times 1.00$ & $\times 0.40$ \\
-S5.3 & Panama combined       & $\times 1.80$ & $\times 0.40$ \\
+R & 4{,}798{,}860 & $+$344{,}059 & $+7.72\%$ \\
+A & 4{,}798{,}860 & $+$344{,}059 & $+7.72\%$ \\
+F & 4{,}798{,}860 & $+$344{,}059 & $+7.72\%$ \\
+\midrule
+Flex.\ value $Z_R - Z_A$ & \multicolumn{3}{l}{\$0 --- baseline already optimal} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{S4.1 : Suez cost shock.}
-Motivated by the 2024 Houthi attack campaign on Red Sea shipping
-\cite{houthi2024}, this scenario raises the variable cost of all
-76~sea arcs crossing the Suez corridor by $80\%$.
-The affected zone pairs include Europe$\leftrightarrow$Asia,
-Europe$\leftrightarrow$MiddleEast, MiddleEast$\leftrightarrow$Asia and EastEurope$\rightarrow$MiddleEast.
-Carriers reroute around the Cape of Good Hope, adding roughly
-9\,000\,km and 10--14 transit days. Arc capacities are unchanged:
-all shipping capacity remains available, at higher cost.
-
-\paragraph{S4.2 : Suez capacity reduction.}
-Inspired by the Ever Given grounding (2021) and partial inspection
-regimes, this scenario reduces the shared capacity of all 76~Suez
-sea arcs by $60\%$ while leaving variable costs at baseline.
-The $\times 0.40$ multiplier reflects a scenario where roughly
-two-thirds of normal Suez traffic is diverted or blocked, while the
-remaining third continues transiting at normal unit cost.
-
-\paragraph{S4.3 : Suez combined shock.}
-This scenario simultaneously applies the cost increase of~S4.1 and
-the capacity restriction of~S4.2, representing the 2024 Red Sea
-crisis at peak intensity: rerouting is both expensive (elevated
-insurance, longer routes) and constrained (reduced throughput on
-remaining Suez corridor arcs).
-
-\paragraph{S5.1 : Panama cost shock.}
-Motivated by the 2023--2024 drought that reduced canal water levels
-to historic lows \cite{panama2024}, and by the geopolitical tensions
-surrounding the canal's administration following US--Panama friction
-in late 2024 \cite{panamaGeo2025}, this scenario raises variable
-costs on all 122~Panama sea arcs by $80\%$.
-Affected corridors include Americas$\leftrightarrow$Asia,
-SouthAmerica$\leftrightarrow$Asia, and intra-Americas sea routes Americas$\leftrightarrow$SouthAmerica.
-The $80\%$ premium reflects the additional distance and time cost of
-rerouting via Cape Horn.
-
-\paragraph{S5.2 : Panama capacity reduction.}
-During the 2023–2024 drought the Panama Canal Authority implemented draft 
-restrictions that lowered allowable vessel drafts and reduced daily transits, 
-which significantly curtailed canal capacity; however, the relationship between
- draft limits and vessel deadweight varies by ship type and is not a uniform 40\%
-  reduction in DWT. For modelling purposes, this scenario assumes a 60\% 
-  reduction in effective capacity (×0.40) across all Panama-corridor sea arcs 
-  to represent a case where drought or deliberate traffic management sharply 
-  imits throughput while the canal remains nominally open.
-
-\paragraph{S5.3 : Panama combined shock.}
-The most severe Panama scenario combines the cost increase of~S5.1
-with the capacity restriction of~S5.2: a drought-driven throughput
-collapse paired with a punitive transit-fee hike, as debated by the
-Panamanian government in late 2024 amid pressure to raise canal
-revenues.
-
-\subsection{Phase 3 Results}
-\label{sec:phase3_results}
-
-All six canal scenarios are structurally feasible: the $\times 0.40$
-capacity reduction, while severe, does not exhaust the outgoing arc
-capacity of any single supplier once the full network is considered.
-This contrasts with the node-removal infeasibility of Scenarios S1
-and~S3, where a hub is physically deleted. Here, canal arcs are
-capacity-constrained but not removed, and the solver can always
-route residual flow through alternative corridors, at higher cost.
-No penalty slack is required and all demand is met under every
-strategy.
-
-Table~\ref{tab:phase3_results} reports the logistics cost achieved by
-each strategy across the six scenarios, directly comparable to
-$Z^* = \$4{,}454{,}801$.
+All three strategies tie exactly: $Z_R = Z_A = Z_F = \$4{,}798{,}860$
+($\Delta Z = +\$344{,}059$, $+7.72\%$). The flexibility value is
+identically zero. Table~\ref{tab:s4_decomp} shows the cost
+decomposition.
 
 \begin{table}[H]
 \centering
-\caption{Phase~3 logistics costs (\$). $\Delta Z = Z - Z^*$.
-         Flex.\ value $= Z_R - Z_A$.}
-\label{tab:phase3_results}
-\resizebox{\linewidth}{!}{%
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lccrrrrr@{}}
-\toprule
-\textbf{Sc.} & \textbf{Canal} & \textbf{Shock}
-  & \multicolumn{1}{c}{$Z_R$}
-  & \multicolumn{1}{c}{$Z_A$}
-  & \multicolumn{1}{c}{$Z_F$}
-  & \multicolumn{1}{c}{$\Delta Z_F$ (\%)}
-  & \multicolumn{1}{c}{Flex.\ value} \\
-\midrule
-S4.1 & Suez   & C     & 4{,}764{,}699 & 4{,}764{,}699 & 4{,}764{,}699 & $+6.96\%$ & \$0 \\
-S4.2 & Suez   & K     & 4{,}463{,}450 & 4{,}460{,}265 & 4{,}460{,}266 & $+0.12\%$ & \$3{,}185 \\
-S4.3 & Suez   & C+K   & 4{,}798{,}860 & 4{,}798{,}860 & 4{,}798{,}860 & $+7.72\%$ & \$0 \\
-S5.1 & Panama & C     & 4{,}682{,}184 & 4{,}674{,}317 & 4{,}673{,}500 & $+4.91\%$ & \$7{,}868 \\
-S5.2 & Panama & K     & 4{,}465{,}620 & 4{,}462{,}902 & 4{,}462{,}851 & $+0.18\%$ & \$2{,}718 \\
-S5.3 & Panama & C+K   & 4{,}682{,}184 & 4{,}674{,}317 & 4{,}673{,}500 & $+4.91\%$ & \$7{,}868 \\
-\bottomrule
-\end{tabular}%
-}
-\begin{minipage}{\linewidth}
-\vspace{3pt}
-\footnotesize
-Shock codes: C\,=\,cost only, K\,=\,capacity only, C+K\,=\,combined.
-All demand is met under every strategy and scenario.
-\end{minipage}
-\end{table}
-
-\paragraph{Monotonicity check.}
-The expected ordering $Z_F \leq Z_A \leq Z_R$ holds in all six
-scenarios. For S4.1 and S4.3, all three strategies tie exactly
-($Z_R = Z_A = Z_F$): the existing warehouse footprint is already
-optimal under a pure Suez cost shock, and no reconfiguration
-improves upon it. In the Panama group, F retains a small edge over
-A (\$51--\$817) by deactivating one baseline arc whose sunk cost
-is no longer justified.
-
-\subsubsection*{Suez group (S4.1--S4.3)}
-
-\paragraph{S4.1 : Suez cost shock.}
-The $+80\%$ surcharge on the 39~affected Suez sea arcs raises
-$Z_F$ to \$4{,}764{,}699 ($+6.96\%$). All three strategies tie:
-the baseline network absorbs the cost shock without any
-reconfiguration, and the flexibility value is exactly \$0.
-A rerouting of all Suez flows around the Cape of Good Hope is optimal, 
-but the baseline solution already routes all affected flow
-only through Asia$\leftrightarrow$Europe legs.
-\begin{table}[H]
-\centering
-\caption{Cost decomposition --- scenario S4.1 (\$).}
-\label{tab:cost_decomp_s4_1}
+\caption{Cost decomposition --- scenario S4 (\$).
+         All strategies identical; R column shown.}
+\label{tab:s4_decomp}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lrr}
 \toprule
@@ -249,87 +97,9 @@ only through Asia$\leftrightarrow$Europe legs.
 \midrule
 \multicolumn{3}{l}{\textit{Fixed costs}} \\
 ~~WH opening (sunk) & \$22,046 & \$22,046 \\
-~~WH opening (new)  & \$0 & \$0 \\
+~~WH opening (new) & \$0 & \$0 \\
 ~~Arc activation (sunk) & \$19,638 & \$19,638 \\
-~~Arc activation (new)  & \$0 & \$0 \\
-\midrule
-\multicolumn{3}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$638,198 & \$639,128 \\
-~~B (Semiconductors) & \$2,814,741 & \$3,009,410 \\
-~~C (Battery Comp.) & \$960,176 & \$1,074,477 \\
-\midrule
-\textbf{Total $Z$} & \$4,454,801 & \$4,764,699 \\
-\midrule
-$\Delta Z$ vs $Z^*$ & --- & \$+309,899 \\
-$\Delta Z$ (\%) & --- & +6.96\% \\
-Flex.\ value $Z_R-Z_A$ & --- & \$0 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\paragraph{S4.2 : Suez capacity reduction.}
-The $\times 0.40$ capacity cut is almost entirely absorbed:
-$Z_F = \$4{,}460{,}266$ ($+0.12\%$), with all demand met.
-Unlike the previous model version, the residual corridor capacity
-is sufficient to route all supplier volumes, meaning no supplier
-is bottlenecked at origin. The small flexibility value
-(\$3{,}185) reflects marginal flow rebalancing at the warehouse
-layer. This is the Suez scenario GlobalFlow is best positioned
-to survive.
-\begin{table}[H]
-\centering
-\caption{Cost decomposition --- scenario S4.2 (\$).}
-\label{tab:cost_decomp_s4_2}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
-\midrule
-\multicolumn{5}{l}{\textit{Fixed costs}} \\
-~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
-~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
-~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
-~~Arc activation (new)  & \$0 & \$0 & \$1,671 & \$21,309 \\
-\midrule
-\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$638,198 & \$638,198 & \$638,198 & \$638,198 \\
-~~B (Semiconductors) & \$2,814,741 & \$2,823,198 & \$2,818,343 & \$2,818,343 \\
-~~C (Battery Comp.) & \$960,176 & \$960,368 & \$960,368 & \$960,369 \\
-\midrule
-\textbf{Total $Z$} & \$4,454,801 & \$4,463,450 & \$4,460,265 & \$4,460,266 \\
-\midrule
-$\Delta Z$ vs $Z^*$ & --- & \$+8,649 & \$+5,465 & \$+5,465 \\
-$\Delta Z$ (\%) & --- & +0.19\% & +0.12\% & +0.12\% \\
-Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$3,185} & --- \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\paragraph{S4.3 : Suez combined shock.}
-Combining the $+80\%$ cost premium with the $\times 0.40$
-capacity cut yields $Z_F = \$4{,}798{,}860$ ($+7.72\%$), with all
-three strategies again tying exactly. The capacity constraint
-does not add binding pressure beyond the cost shock alone:
-once the solver reroutes away from the most expensive Suez arcs,
-the residual capacity on those arcs is no longer the active
-constraint. The combined disruption cost ($+7.72\%$) is
-slightly larger than S4.1 ($+6.96\%$) but not additive, 
-the interaction between the two mechanisms is sublinear.
-
-\begin{table}[H]
-\centering
-\caption{Cost decomposition --- scenario S4.3 (\$). All three strategies (R, A, F) yield identical costs.}
-\label{tab:cost_decomp_s4_3}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrr}
-\toprule
-\textbf{Component} & \textbf{Baseline} & \textbf{R / A / F} \\
-\midrule
-\multicolumn{3}{l}{\textit{Fixed costs}} \\
-~~WH opening & \$22,046 & \$22,046 \\
-~~Arc activation & \$19,638 & \$19,638 \\
+~~Arc activation (new) & \$0 & \$0 \\
 \midrule
 \multicolumn{3}{l}{\textit{Variable transport costs by product}} \\
 ~~A (Fertilizers) & \$638,198 & \$639,128 \\
@@ -340,205 +110,93 @@ the interaction between the two mechanisms is sublinear.
 \midrule
 $\Delta Z$ vs $Z^*$ & --- & \$+344,059 \\
 $\Delta Z$ (\%) & --- & +7.72\% \\
+Flex.\ value $Z_R - Z_A$ & --- & \$0 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
 }
 \end{table}
 
-\subsubsection*{Panama group (S5.1--S5.3)}
+\subsection{Analysis}
+\label{sec:s4_analysis}
 
-\paragraph{S5.1 : Panama cost shock.}
-The $+80\%$ cost shock on the 65~Panama-corridor arcs produces
-$Z_F = \$4{,}673{,}500$ ($+4.91\%$), materially less than the
-Suez equivalent ($+6.96\%$). The flexibility value \$7{,}868 is
-the largest in the cost-shock group: adaptation activates two
-bypass arcs (A223 W14$\rightarrow$W12 sea; A224
-W12$\rightarrow$C1 road) that route Americas-bound flows through
-non-Panama lanes. The Panama corridor carries a smaller baseline
-share than Suez, and natural detours are available.
+\paragraph{Why all three strategies tie.}
+The three strategies yield identical costs because the optimal response
+to the $+80\%$ cost shock is to reroute all Suez-corridor flows away
+from the affected arcs, a purely operational adjustment that
+strategy~R can execute without any structural change. Once the solver
+avoids those 39 arcs, the $\times 0.40$ capacity constraint on them is
+no longer active (the flows have been redirected), so the capacity
+shock adds no additional cost. Strategy~A has no profitable new
+openings or activations to make. The baseline warehouse footprint
+already contains all the intermediate nodes needed for Cape-of-Good-Hope
+routing. Strategy~F reaches the same greenfield optimum as R because the
+network structure is not the binding constraint; the cost shock is.
+
+This is structurally analogous to scenario~T2 (energy crisis) in
+Phase~2, where a uniform per-mode cost multiplier leaves all
+alternative paths penalised at least as much as the current ones.
+Here, the cost shock affects a specific corridor rather than a
+mode, but the effect is the same: rerouting is already
+first-best under strategy~R.
+
+\paragraph{Product-level exposure.}
+The disruption falls almost entirely on products~B and~C. Product~B
+(Semiconductors, $+\$208{,}800$ vs baseline) routes from Singapore via
+Europe-bound arcs that transit the Red Sea corridor; the Cape rerouting
+adds cost on those legs. Product~C (Battery Components, $+\$134{,}329$)
+is similarly exposed on its Europe-bound legs from the Dubai hub.
+Product~A (Fertilizers, $+\$930$) is nearly unaffected because its
+supply chains are already concentrated in Europe and the Middle East,
+with little reliance on the Suez-dependent Asia--Europe arc set.
+
+\paragraph{Positioning within the scenario library.}
+Figure~\ref{fig:scenario_ranking} provides the cross-phase ranking.
+S4 sits between T2 (energy crisis, $+10.64\%$) and T3 (hub surcharge,
+$+19.13\%$) on the feasible disruption scale: at $+7.72\%$ it is more
+severe than the T1 tariff shock ($+3.49\%$) and approaches the energy
+crisis magnitude. Crucially, it remains well below the topological
+shocks of Phase~2: the H3 closure (S1) costs $+81.6\%$, more than
+ten times the Suez disruption. This comparison crystallises the
+central finding of the entire analysis: \emph{geographic chokepoints
+are manageable; topological chokepoints are existential.}
+
+A disruption that raises costs by $+80\%$ on 39~sea arcs propagates as
+a $+7.72\%$ system-wide shock because alternative routing exists and
+the baseline already uses it efficiently. A disruption that removes a
+single hub node propagates as an $+81.6\%$ shock because no
+alternative exists for the stranded suppliers. The network is,
+in a sense, naturally resilient against corridor-level shocks and
+structurally fragile against node-level shocks.
+
 \begin{table}[H]
 \centering
-\caption{Cost decomposition --- scenario S5.1 (\$).}
-\label{tab:cost_decomp_s5_1}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrrr}
+\caption{Cross-phase scenario ranking by $\Delta Z_F$ (\%).}
+\label{fig:scenario_ranking}
+\small
+\begin{tabular}{llr}
 \toprule
-\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
+\textbf{ID} & \textbf{Type} & \textbf{$\Delta Z_F$ (\%)} \\
 \midrule
-\multicolumn{5}{l}{\textit{Fixed costs}} \\
-~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
-~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
-~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
-~~Arc activation (new)  & \$0 & \$0 & \$2,461 & \$21,282 \\
-\midrule
-\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$638,198 & \$638,566 & \$637,799 & \$637,799 \\
-~~B (Semiconductors) & \$2,814,741 & \$2,885,746 & \$2,883,843 & \$2,883,843 \\
-~~C (Battery Comp.) & \$960,176 & \$1,116,188 & \$1,108,530 & \$1,108,530 \\
-\midrule
-\textbf{Total $Z$} & \$4,454,801 & \$4,682,184 & \$4,674,317 & \$4,673,500 \\
-\midrule
-$\Delta Z$ vs $Z^*$ & --- & \$+227,384 & \$+219,516 & \$+218,700 \\
-$\Delta Z$ (\%) & --- & +5.10\% & +4.93\% & +4.91\% \\
-Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$7,868} & --- \\
+S3  & H3 closure + energy & $+89.6$ \\
+S1  & H3 closure          & $+81.6$ \\
+T3  & Hub surcharge       & $+19.1$ \\
+T2  & Energy crisis       & $+10.6$ \\
+\textbf{S4}  & \textbf{Suez crisis} & $\mathbf{+7.7}$ \\
+T1  & Tariff shock        & $+3.5$  \\
+S2  & Korea corridor      & $0.0$   \\
 \bottomrule
 \end{tabular}
-}
 \end{table}
 
-\paragraph{S5.2 : Panama capacity reduction.}
-The $\times 0.40$ capacity cut on Panama arcs is almost
-entirely absorbed: $Z_F = \$4{,}462{,}851$ ($+0.18\%$). The
-baseline Panama flows are well below the residual corridor
-capacity, so the constraint never binds. The flexibility value
-(\$2{,}718) is correspondingly small. This is the canal scenario
-GlobalFlow is best positioned to absorb.
-\begin{table}[H]
-\centering
-\caption{Cost decomposition --- scenario S5.2 (\$).}
-\label{tab:cost_decomp_s5_2}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
-\midrule
-\multicolumn{5}{l}{\textit{Fixed costs}} \\
-~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
-~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
-~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
-~~Arc activation (new)  & \$0 & \$0 & \$1,718 & \$20,539 \\
-\midrule
-\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$638,198 & \$638,566 & \$637,799 & \$637,799 \\
-~~B (Semiconductors) & \$2,814,741 & \$2,885,746 & \$2,883,843 & \$2,883,843 \\
-~~C (Battery Comp.) & \$960,176 & \$1,116,188 & \$1,108,530 & \$1,108,530 \\
-\midrule
-\textbf{Total $Z$} & \$4,454,801 & \$4,465,620 & \$4,462,902 & \$4,462,851 \\
-\midrule
-$\Delta Z$ vs $Z^*$ & --- & \$+10,820 & \$+8,101 & \$+8,050 \\
-$\Delta Z$ (\%) & --- & +0.24\% & +0.18\% & +0.18\% \\
-Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$2,718} & --- \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-
-\paragraph{S5.3 : Panama combined shock.}
-S5.3 produces identical costs to S5.1 ($Z_F = \$4{,}673{,}500$,
-$\Delta Z_F = +4.91\%$, flex.\ value \$7{,}868). Once the solver
-reroutes away from Panama in response to the $+80\%$ cost shock,
-the $\times 0.40$ capacity cap on the corridor becomes
-non-binding: the optimal solution already avoids Panama, so
-restricting its capacity costs nothing additional. The Panama
-vulnerability is a \emph{price} vulnerability, not a
-\emph{throughput} vulnerability.
-\begin{table}[H]
-\centering
-\caption{Cost decomposition --- scenario S5.3 (\$).}
-\label{tab:cost_decomp_s5_3}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{Component} & \textbf{Baseline} & \textbf{R} & \textbf{A} & \textbf{F} \\
-\midrule
-\multicolumn{5}{l}{\textit{Fixed costs}} \\
-~~WH opening (sunk) & \$22,046 & \$22,046 & \$22,046 & \$0 \\
-~~WH opening (new)  & \$0 & \$0 & \$0 & \$22,046 \\
-~~Arc activation (sunk) & \$19,638 & \$19,638 & \$19,638 & \$0 \\
-~~Arc activation (new)  & \$0 & \$0 & \$2,461 & \$21,282 \\
-\midrule
-\multicolumn{5}{l}{\textit{Variable transport costs by product}} \\
-~~A (Fertilizers) & \$638,198 & \$638,566 & \$637,799 & \$637,799 \\
-~~B (Semiconductors) & \$2,814,741 & \$2,885,746 & \$2,883,843 & \$2,883,843 \\
-~~C (Battery Comp.) & \$960,176 & \$1,116,188 & \$1,108,530 & \$1,108,530 \\
-\midrule
-\textbf{Total $Z$} & \$4,454,801 & \$4,682,184 & \$4,674,317 & \$4,673,500 \\
-\midrule
-$\Delta Z$ vs $Z^*$ & --- & \$+227,384 & \$+219,516 & \$+218,700 \\
-$\Delta Z$ (\%) & --- & +5.10\% & +4.93\% & +4.91\% \\
-Flex.\ value $Z_R-Z_A$ & --- & \multicolumn{2}{c}{\$7,868} & --- \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\paragraph{Suez versus Panama.}
-The cross-canal comparison is unambiguous on the cost dimension.
-The Suez cost shock (S4.1, $+6.96\%$) is $1.4\times$ more damaging
-than its Panama counterpart (S5.1, $+4.91\%$), reflecting the larger
-share of GlobalFlow's baseline flow that transits the Red Sea
-corridor. On the capacity dimension, the gap narrows sharply: both
-S4.2 ($+0.12\%$) and S5.2 ($+0.18\%$) are absorbed near-costlessly,
-confirming that the $\times 0.40$ residual capacity is sufficient
-for all supplier volumes in the updated instance. The key asymmetry
-lies in the \emph{combined} shock: S4.3 ($+7.72\%$) exceeds S5.3
-($+4.91\%$) by a wider margin than the cost-only comparison alone,
-because the Suez corridor supports a larger volume of
-cost-sensitive flow that gets squeezed by the joint constraint.
-Suez is the more exposed chokepoint; Panama is the more
-\emph{resilient} one.
-
-\subsubsection*{Cross-phase comparison}
-
-\paragraph{Magnitude of canal shocks versus Phase~2 shocks.}
-On comparable $\Delta Z_F$ percentages, the canal cost shocks
-sit between T1 and T2: S4.1 ($+6.96\%$) falls between T1
-($+3.49\%$) and T2 ($+10.64\%$); S5.1 ($+4.91\%$) is close to T1.
-The capacity-only shocks (S4.2 $+0.12\%$, S5.2 $+0.18\%$) are
-the mildest disruptions in the entire scenario library --- milder
-even than T1. The topological shocks of Phase~2 (S1 $+81.6\%$,
-S3 $+89.6\%$) remain an order of magnitude more damaging than
-any canal scenario: removing a hub severs supplier connectivity
-in a way that no capacity reduction on a sea corridor can replicate,
-since alternative arcs remain available in all Phase~3 scenarios.
-
-\paragraph{Where adaptation pays.}
-The flexibility value $Z_R - Z_A$ tells a different story than
-in Phase~2. For the Suez cost shocks (S4.1, S4.3), the flexibility
-value is exactly \$0 --- the baseline network is already optimally
-positioned and reconfiguration adds nothing. For the Panama cost
-scenarios (S5.1, S5.3), adaptation yields \$7{,}868 by activating
-two bypass arcs, a modest but non-trivial gain. The capacity-only
-scenarios (S4.2 \$3{,}185; S5.2 \$2{,}718) sit in between.
-Across the entire Phase~3 library, flexibility values are small
-relative to T3 (\$98{,}244), confirming that canal disruptions ---
-even severe ones --- do not fundamentally challenge the baseline
-network topology the way a hub-handling shock does.
-
-\subsection{Conclusion}
-\label{sec:phase3_conclusion}
-
-The Phase~3 stress test yields three headline findings. First,
-all six canal scenarios are structurally feasible: the $\times 0.40$
-capacity reduction leaves sufficient corridor throughput for all
-supplier volumes, and every demand unit is met under every strategy.
-This is a materially more optimistic picture than the previous model
-version and reflects a corrected arc identification (39 Suez arcs,
-65 Panama arcs) grounded in the actual instance topology.
-
-Second, the Suez corridor is the more exposed of the two chokepoints.
-Its cost-only shock ($+6.96\%$) is $1.4\times$ more damaging than
-Panama's ($+4.91\%$), and its combined shock ($+7.72\%$) widens
-the gap further. However, both canals remain manageable disruptions
-relative to Phase~2 topological shocks: no canal scenario exceeds
-$+8\%$, whereas H3 closure costs $+81.6\%$.
-
-Third, adaptation (strategy~A) adds value only selectively.
-For Suez cost shocks, the flexibility value is exactly zero ---
-the baseline routing is already optimal. For Panama cost shocks,
-two bypass arcs (A223, A224) unlock \$7{,}868 in savings. The
-strategic implication is that the GlobalFlow network is
-\emph{well-positioned against canal disruptions as currently
-configured}, but that the handful of inter-warehouse arcs that
-adaptation keeps activating across scenarios --- A199, A223,
-A224 --- remain strong candidates for pre-activation in the
-baseline at negligible fixed cost.
-
-This conclusion reinforces the Phase~2 finding: the network's
-primary vulnerability is not geographic breadth but topological
-concentration. The H3 hub and the two suppliers that route
-exclusively through it (S6 Yokohama, S9 Chengdu) are exposed
-to Phase~2 and Phase~3 shocks alike. A genuinely robust
-GlobalFlow network addresses this concentration first;
-canal resilience, by comparison, is already largely built in.
+\paragraph{Pre-activation candidates.}
+Although the flexibility value is zero under S4, adaptation adds
+nothing, the scenario still informs network design. The baseline
+routes that become expensive under the Suez shock all transit the same
+few warehouse-to-warehouse arcs (notably A199 W4$\rightarrow$W3~sea
+and A188 W1$\rightarrow$W12~sea) to access alternative lanes. These
+are the same arcs activated under strategy~A in T3 and S1. Their
+consistent recurrence across disruption types confirms their role as
+structural relief paths. Pre-activating them at baseline would cost
+less than \$4{,}000 in fixed costs and would make strategy~A
+identical to strategy~R from the first period of any
+corridor-level disruption, reducing the adaptation lag to zero.

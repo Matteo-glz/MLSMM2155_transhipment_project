@@ -1,0 +1,221 @@
+================================================================================
+GLOBALFLOW — PLAN DE RÉVISION DU RAPPORT (V1 → VERSION FINALE)
+Matteo GALIZIA & Mathias SIMOENS — MLSMM2155
+================================================================================
+
+CONTEXTE
+--------
+Ce document récapitule les décisions prises suite à l'évaluation critique de la
+V1 du rapport. L'objectif est de monter de ~78/100 à 85+/100 en ciblant les
+corrections à fort retour sur points.
+
+Modification structurelle centrale : supprimer cinq sous-scénarios canaux
+(S4.1, S4.2, S5.1, S5.2, S5.3) et ne garder qu'un seul scénario libre S4
+(Suez combiné, ex-S4.3). Gain : ~2,5 pages réinvesties en profondeur analytique.
+
+================================================================================
+SECTION 1 — ERREURS À CORRIGER AVANT TOUTE RELECTURE (P0 — BLOQUANT)
+================================================================================
+
+1.1  TABLE 19 (S5.2) — DONNÉES COPIÉES-COLLÉES DEPUIS S5.1
+     Symptôme : les coûts de transport variable R/A/F dans la table sont
+     identiques à ceux de la table S5.1, ce qui est mathématiquement
+     impossible (scénario différent).
+     Correction : les vraies valeurs lues dans S5_2_strategy_*.xlsx sont :
+       Strategy R  →  A: 638 565 $  /  B: 2 825 192 $  /  C: 960 177 $
+       Strategy A  →  A: 637 799 $  /  B: 2 821 523 $  /  C: 960 177 $
+       Strategy F  →  A: 637 799 $  /  B: 2 821 523 $  /  C: 960 943 $
+     NOTE : la table entière de S5.2 disparaît avec la suppression des 5
+     sous-scénarios, donc cette correction est implicitement faite.
+
+1.2  REPRODUCTIBILITÉ PHASE 3
+     Symptôme : le code actuel (phase3_canal_scenarios.py) identifie 56 arcs
+     Suez au runtime, mais les Excel sauvegardés (S4_*) en montrent 39.
+     Action : le nouveau script s4_suez_combined.py (voir Section 3 ci-dessous)
+     sera l'unique référence. Relancer et vérifier que les chiffres du rapport
+     correspondent EXACTEMENT aux outputs générés.
+
+================================================================================
+SECTION 2 — ERREURS FACTUELLES À CORRIGER (P1 — IMPORTANT)
+================================================================================
+
+2.1  NOM DES FOURNISSEURS ERRONÉS
+     → "S1–S3 (Minsk, Casablanca, Spain)" dans la description réseau
+        CORRECTION : S3 = Port of Spain (Trinité-et-Tobago), dans les Caraïbes,
+        pas l'Espagne. Remplacer partout.
+     → "S4 Busan" dans la section Strategic Assessment (Phase 2)
+        CORRECTION : S4 = Taipei (Taiwan), S5 = Seoul (Corée du Sud).
+        Busan n'est pas dans l'instance.
+
+2.2  FOURNISSEURS STRANDED SOUS S1/S3
+     Dans le résumé Phase 1 baseline : "H3 closure strands suppliers S6 and S9"
+     CORRECTION : H3 strande S4, S5, S6 ET S9 (quatre fournisseurs, pas deux).
+     La Phase 2 le dit correctement ; harmoniser la Phase 1 en conséquence.
+
+2.3  COMPTE D'ARCS SUEZ — HARMONISER PARTOUT
+     Le rapport V1 mentionne successivement 57, 76, et 39 arcs Suez selon
+     la section. La vérité après exécution du script final : 39 arcs Suez.
+     Remplacer toutes les occurrences par 39.
+     (Les 65 arcs Panama disparaissent avec la suppression des scénarios Panama.)
+
+================================================================================
+SECTION 3 — RESTRUCTURATION DU SCÉNARIO LIBRE (S4)
+================================================================================
+
+DÉCISION : Garder un unique scénario libre S4 = "Red Sea / Suez Crisis (2024)"
+correspondant à l'ex-S4.3 (coût ×1,80 + capacité ×0,40 simultanément).
+
+JUSTIFICATION DU CHOIX S4.3 PLUTÔT QUE S4.1 OU S4.2 :
+  - S4.3 est le plus dommageable des scénarios Suez (+7,72 % vs +6,96 %)
+  - Il correspond précisément à la crise Houthi 2024 (rerouting coûteux +
+    congestion résiduelle des arcs restants) — meilleure ancrage factuel
+  - Il subsume analytiquement S4.1 et S4.2 : on peut mentionner en une phrase
+    que "le choc combiné excède le choc coût seul de 0,76 pp, confirmant que
+    la contrainte capacité est dominée par le rerouting dès qu'il est optimal"
+  - S4.1 et S4.2 peuvent être cités comme analyses de sensibilité (une ligne)
+    sans tableaux complets
+
+FICHIER SCRIPT : s4_suez_combined.py (voir Section 5)
+FICHIER LATEX : voir Section 4
+
+================================================================================
+SECTION 4 — RÉINVESTISSEMENT DES 2,5 PAGES LIBÉRÉES
+================================================================================
+
+4.1  SOUS-SECTION "BASELINE RÉSILIENT" (~1 page) — GAIN MAXIMAL
+     C'est la réponse directe à la question 3 de la grille d'évaluation :
+     "What is the cost of resilience? Could a slightly more expensive baseline
+     have significantly reduced disruption costs?"
+
+     CONTENU :
+     a) Définir Z*_res : baseline alternatif avec pré-activation forcée de :
+        → Arcs inter-entrepôts récurrents : A188, A224, A317 (apparaissent
+          sous T1, T3, S1, S3 — "insurance arcs")
+        → Un arc de secours S→H alternatif pour casser le SPOF H3 :
+          par exemple S6→H2 (Yokohama→Dubai, géographiquement faisable)
+          et S9→H2 (Chengdu→Dubai)
+     b) Implémenter : cloner phase1_solver.py, ajouter 5 contraintes
+        arc_act[a] == 1 pour les arcs ci-dessus, resolve.
+     c) Reporter :
+        → Z*_res vs Z* (surcoût attendu : +20 à +60 K$, à vérifier)
+        → Nouveau ΔZ(S1) avec le baseline résilient (le SPOF H3 étant
+          partiellement contourné, le scénario S1 devient beaucoup moins
+          dévastateur)
+        → Ratio "1 $ investi en résilience baseline → X $ économisés sous S1"
+     d) Conclusion : 2-3 phrases managériales sur le trade-off
+        coût normal vs assurance structurelle
+
+     SCRIPT À CRÉER : resilient_baseline.py (~50 lignes)
+
+4.2  ÉLARGISSEMENT SECTION 4.5 "STRATEGIC ASSESSMENT" (~½ page)
+     Ajouter deux paragraphes courts :
+
+     PARAGRAPHE A — "Topology vs. price shocks (quantified)"
+     Formaliser la dichotomie déjà évoquée :
+       → ΔZ topologique (S3) = +89,6 %
+       → ΔZ prix maximum (T3) = +19,1 %
+       → Ratio : 89,6/19,1 ≈ 4,7× — les chocs topologiques sont ~5× plus
+         coûteux que les chocs tarifaires les plus sévères
+     Ce ratio donne un chiffre clair et mémorable au professeur.
+
+     PARAGRAPHE B — "Modal exposure by product"
+     Pour chaque produit, % du flux baseline sur sea/road/air (disponible
+     dans baseline_solution.xlsx, juste un agrégat). Exemple attendu :
+       → A (Fertilizers) : ~75 % sea, ~25 % road
+       → B (Semiconductors) : ~65 % sea, ~35 % road (pas d'air ? à vérifier)
+       → C (Battery) : ~80 % sea, ~20 % road
+     Cela explique pourquoi T2 (air +60 %) frappe B plus que A, et pourquoi
+     les scénarios canaux (sea uniquement) n'affectent pas les flows road.
+
+4.3  SECTION CONCLUSION FINALE (~½ page) — NOUVELLE SECTION 6
+     L'assignment demande explicitement trois réponses stratégiques.
+     Créer une section \section{Conclusion} après Phase 3 avec trois
+     sous-paragraphes nommés :
+
+     \paragraph{Most damaging scenario.}
+     → S3 (+89,6 %), causé par la combinaison H3 closure + energy shock.
+        Mécanisme : perte du seul hub d'entrée pour 4 fournisseurs (48,7 %
+        de la base d'approvisionnement), forçant un recours au marché spot
+        à γ=2,5. La dimension topologique domine.
+
+     \paragraph{Persistent structural weakness.}
+     → Single-point-of-failure H3 (Singapore) : 46 % de chute de débit
+        à sa suppression (Table node criticality).
+        Deux dimensions : (1) 4 fournisseurs exclusivement connectés via H3 ;
+        (2) les mêmes arcs de relief (A188, A224, A317) réapparaissent sous
+        T1, T3, S1, S3 — signal que le baseline sous-investit en flexibilité.
+
+     \paragraph{Cost of resilience.}
+     → Reprendre les chiffres de la sous-section 4.6 (à calculer).
+        Format attendu : "Pre-activating arcs [liste] and adding one
+        alternative hub connection for S6 and S9 raises Z* by +X $ (+Y %),
+        but reduces ΔZ(S1) from +$3,633,480 to +$Z (-W %). The resilience
+        ratio is approximately $1 invested → $K saved under a topological shock."
+
+================================================================================
+SECTION 5 — PLAN D'ACTION CHRONOLOGIQUE
+================================================================================
+
+JOUR 1 (2-3 heures)
+  [ ] Copier phase3_canal_scenarios.py → s4_suez_combined.py
+  [ ] Épurer le script : garder uniquement S4.3 (un scénario × 3 stratégies)
+  [ ] Relancer et vérifier que les outputs correspondent au rapport corrigé
+  [ ] Corriger les erreurs factuelles P0+P1 dans les .tex concernés
+
+JOUR 2 (2 heures)
+  [ ] Créer resilient_baseline.py (fork de phase1_solver.py + 5 contraintes)
+  [ ] Relancer Phase 1 avec baseline résilient → noter Z*_res
+  [ ] Relancer scénario S1 stratégie F avec nouveau baseline → noter ΔZ(S1)_res
+  [ ] Calculer le ratio de résilience
+
+JOUR 3 (2-3 heures rédaction)
+  [ ] Réécrire 06_analyse_libre.tex (version courte S4 uniquement)
+      → utiliser le fichier LaTeX fourni dans ce plan
+  [ ] Écrire sous-section 4.6 "A Resilient Baseline?" dans 05_robustness.tex
+  [ ] Écrire section 6 "Conclusion" (3 paragraphes)
+  [ ] Ajouter 2 paragraphes à la section 4.5 Strategic Assessment
+
+JOUR 4 (1 heure)
+  [ ] Relire rapport complet en croisant PDF ↔ Excel ↔ code
+  [ ] Vérifier que TOUS les chiffres dans les tables sont issus des Excel
+      générés par les scripts finaux (pas de copier-coller manuel)
+  [ ] Ajouter README.txt avec ordre d'exécution et dépendances
+
+JOUR 5 (pause, puis relecture finale)
+  [ ] Relecture à froid
+  [ ] Vérification des citations bibliographiques (format, urls, dates)
+  [ ] Vérification typographique (typo "varibale", espaces insécables, etc.)
+
+================================================================================
+SECTION 6 — CHECKLIST FINALE AVANT SOUMISSION
+================================================================================
+
+DONNÉES
+  [ ] Z* baseline = 4 454 800,57 $ (vérifier dans baseline_solution.xlsx)
+  [ ] 14 entrepôts ouverts (W9 Sydney fermé)
+  [ ] 11 arcs optionnels activés (tous road, last-mile)
+  [ ] S4 : 39 arcs Suez affectés (vérifier dans output script s4_suez_combined.py)
+  [ ] ZR = ZA = ZF pour S4 (flex value = 0, les trois stratégies tient)
+  [ ] ΔZ(S4) ≈ +7,72 % (à confirmer post-regen)
+
+NOMMAGE FOURNISSEURS (vérifier partout dans le PDF compilé)
+  [ ] S1 = Minsk, S2 = Casablanca, S3 = Port of Spain (Trinidad)
+  [ ] S4 = Taipei, S5 = Seoul, S6 = Yokohama
+  [ ] S7 = Antofagasta, S8 = Lubumbashi, S9 = Chengdu
+
+COHÉRENCE NUMÉRIQUE
+  [ ] Tous les ΔZ dans les tables correspondent aux Excel des scripts finaux
+  [ ] Pas de table avec données copiées-collées d'un autre scénario
+  [ ] Le compte d'arcs Suez est identique dans toutes les sections (39)
+
+CODE
+  [ ] phase1_solver.py → produit baseline_solution.xlsx ✓
+  [ ] phase2_solver.py → produit results phase2 ✓
+  [ ] s4_suez_combined.py → produit S4_strategy_{R,A,F}.xlsx ✓
+  [ ] (optionnel) resilient_baseline.py → produit resilient_baseline.xlsx
+  [ ] Chemin Xpress : try/except ou README expliquant la dépendance locale
+  [ ] README.txt : ordre d'exécution, dépendances pip, dépendances Xpress
+
+================================================================================
+FIN DU DOCUMENT
+================================================================================
