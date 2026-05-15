@@ -1,0 +1,58 @@
+
+ %!TEX root = main.tex
+
+\addcontentsline{toc}{section}{Use of Generative AI Tools}
+
+This report was produced with the assistance of a generative AI
+language model (Anthropic Claude) used as a productivity and
+analytical support tool. Specifically, AI assistance was used for
+the following tasks:
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+
+  \item \textbf{Code generation and debugging.}
+  The Python scripts implementing the Xpress MIP solver
+  (Phase~1, Phase~2, resilient baseline, and Suez scenario),
+  the min-cut and warehouse vulnerability analyses, the
+  pipeline orchestration (\texttt{main.py}), and the interactive
+  HTML visualiser were developed with AI-assisted code generation,
+  iterative debugging, and structural review.
+
+  \item \textbf{Data quality diagnosis.}
+  The identification of the arc-capacity infeasibilities
+  (A008 and A011 below supplier supply volumes) and the
+  supply-demand imbalance for product~B were surfaced through
+  AI-assisted cross-verification of the instance data against
+  solver outputs.
+
+  \item \textbf{Implementation of the resilient baseline.}
+  The resilient baseline analysis was implemented with AI
+  assistance, including the construction of synthetic bypass
+  arcs, the application of the pessimism factor ($\times 1.5$),
+  and the computation of the resilience ratio. The underlying
+  analytical choices --- which suppliers to connect, which arcs
+  to pre-activate, and how to interpret the results --- were
+  made by the authors.
+
+  \item \textbf{LaTeX drafting and structure.}
+  Section drafts, table formatting, mathematical notation,
+  and the overall report structure were refined with AI
+  assistance. All analytical content, interpretations, and
+  conclusions were reviewed, validated, and approved by the authors.
+
+  \item \textbf{Critical review.}
+  The AI tool was used to perform a simulated critical evaluation
+  of the report prior to submission, identifying factual errors
+  (supplier names, arc counts), copy-paste inconsistencies in
+  tables, and gaps in the strategic assessment relative to the
+  assignment rubric.
+
+\end{itemize}
+
+All quantitative results reported in this document were produced
+by running the solver scripts on the provided instance data and
+verified by the authors against the generated Excel outputs.
+The AI tool did not access the solver directly and did not
+produce any numerical results autonomously. Responsibility for
+the analytical choices, model formulation, and conclusions
+rests entirely with the authors.

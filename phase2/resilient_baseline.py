@@ -72,6 +72,17 @@ EXCEL_FILE = os.environ.get('EXCEL_FILE') or _find([
     os.path.join(_CWD, 'globalflow_instance.xlsx'),
     os.path.join(os.path.dirname(__file__), '..', 'data', 'globalflow_instance.xlsx'),
 ])
+
+BASELINE_FILE = os.environ.get('BASELINE_FILE') or _find([
+    os.path.join(_CWD, 'phase1', 'results', 'baseline_solution.xlsx'),
+    os.path.join(os.path.dirname(__file__), '..', 'phase1', 'results', 'baseline_solution.xlsx'),
+])
+
+S1_F_FILE = os.environ.get('S1_F_FILE') or _find([
+    os.path.join(_CWD, 'phase2', 'results', 'scenario_ArcCosts_S1', 'strategy_F.xlsx'),
+    os.path.join(os.path.dirname(__file__), 'results', 'scenario_ArcCosts_S1', 'strategy_F.xlsx'),
+])
+
 _RESULTS_DIR = os.path.join(os.path.dirname(__file__), 'results')
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 OUTPUT_FILE = os.path.join(
@@ -79,6 +90,25 @@ OUTPUT_FILE = os.path.join(
 
 if not EXCEL_FILE:
     sys.exit("ERROR: globalflow_instance.xlsx not found. Set EXCEL_FILE env var.")
+if not BASELINE_FILE:
+    sys.exit("ERROR: phase1/results/baseline_solution.xlsx not found. Run phase1_solver.py first.")
+if not S1_F_FILE:
+    sys.exit("ERROR: phase2/results/scenario_ArcCosts_S1/strategy_F.xlsx not found. Run phase2_solver.py first.")
+
+# Load reference costs from upstream results
+_bl_sum   = pd.read_excel(BASELINE_FILE, sheet_name='Summary')
+_cost_row = _bl_sum[_bl_sum['Metric'] == 'Total Cost ($)']['Value']
+if _cost_row.empty:
+    sys.exit(f"ERROR: 'Total Cost ($)' not found in {BASELINE_FILE} → Summary sheet.")
+Z_STAR_STD = float(_cost_row.iloc[0])
+
+_s1f_sum  = pd.read_excel(S1_F_FILE, sheet_name='Summary')
+_s1f_row  = _s1f_sum[_s1f_sum['Metric'] == 'Logistics Cost ($)']['Value']
+if _s1f_row.empty:
+    sys.exit(f"ERROR: 'Logistics Cost ($)' not found in {S1_F_FILE} → Summary sheet.")
+Z_F_S1_STD = float(_s1f_row.iloc[0])
+
+delta_s1_std_pct = (Z_F_S1_STD - Z_STAR_STD) / Z_STAR_STD * 100
 
 print("=" * 70)
 print("GlobalFlow — Resilient Baseline v2 (4 synthetic arcs, pessimistic costs)")
@@ -358,9 +388,8 @@ st1, sol1, t1 = solve_mip(net1, S, H, W, C, S_p, supplier_prods, Dem, Sup,
 if sol1 is None:
     sys.exit(f"ERROR: Experiment 1 infeasible (status={st1})")
 
-Z_RES      = sol1['logistics']
-Z_STAR_STD = 4_454_800.57
-surcharge  = Z_RES - Z_STAR_STD
+Z_RES     = sol1['logistics']
+surcharge = Z_RES - Z_STAR_STD
 
 print(f"  Status   : {st1}  ({t1:.2f}s)")
 print(f"  Z*       = ${Z_STAR_STD:>14,.2f}")
@@ -422,8 +451,6 @@ forced2 = {a for a in insurance_fc if a in A_fixed2}
 st2, sol2, t2 = solve_mip(net2, S2, H2_, W2, C2, Sp2, sprod2, Dem2, Sup2,
                            forced_arcs=forced2)
 
-Z_F_S1_STD = 8_088_281.0
-
 print(f"\n  Status   : {st2}  ({t2:.2f}s)")
 if sol2 is None:
     print("  ERROR: Experiment 2 infeasible.")
@@ -436,7 +463,7 @@ else:
     inv       = Z_RES - Z_STAR_STD
     ratio     = savings / inv if inv > 0 else 0
 
-    print(f"  ZF(S1) standard          = ${Z_F_S1_STD:>14,.2f}  (+81.6%)")
+    print(f"  ZF(S1) standard          = ${Z_F_S1_STD:>14,.2f}  (+{delta_s1_std_pct:.1f}%)")
     print(f"  ZF(S1|resilient, pess.)  = ${Z_S1_RES:>14,.2f}  "
           f"(+{delta_res/Z_RES*100:.1f}% vs Z*_res)")
     print(f"  Savings vs standard      = ${savings:>+14,.2f}")
@@ -475,7 +502,7 @@ print(f"  Insurance arcs fc              : ${INSURANCE_COST:>14,.2f}")
 print(f"  ZF(S1) standard                : ${Z_F_S1_STD:>14,.2f}")
 if sol2:
     print(f"  ZF(S1|resilient, pessimistic)  : ${Z_S1_RES:>14,.2f}")
-    print(f"  ΔZ(S1) standard                : ${Z_F_S1_STD-Z_STAR_STD:>+14,.2f}  (+81.6%)")
+    print(f"  ΔZ(S1) standard                : ${Z_F_S1_STD-Z_STAR_STD:>+14,.2f}  (+{delta_s1_std_pct:.1f}%)")
     print(f"  ΔZ(S1|resilient)               : ${delta_res:>+14,.2f}"
           f"  (+{delta_res/Z_RES*100:.1f}%)")
     print(f"  Savings under S1               : ${savings:>+14,.2f}")
@@ -504,7 +531,7 @@ sum_rows = [
     ('ZF(S1) standard ($)', round(Z_F_S1_STD, 2)),
     ('ZF(S1|resilient) ($)', round(Z_S1_RES, 2) if sol2 else 'infeasible'),
     ('ΔZ(S1) standard ($)', round(Z_F_S1_STD - Z_STAR_STD, 2)),
-    ('ΔZ(S1) standard (%)', 81.6),
+    ('ΔZ(S1) standard (%)', round(delta_s1_std_pct, 2)),
     ('ΔZ(S1|resilient) ($)', round(delta_res, 2) if sol2 else 'N/A'),
     ('ΔZ(S1|resilient) (%)', round(delta_res/Z_RES*100, 1) if sol2 else 'N/A'),
     ('Savings ($)', round(savings, 2) if sol2 else 'N/A'),

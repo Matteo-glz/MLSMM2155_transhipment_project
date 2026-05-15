@@ -29,7 +29,7 @@ import pandas as pd
 import networkx as nx
 import os
 
-EXCEL_FILE  = '/Users/matteogalizia/Documents/GitHub/MLSMM2155_transhipment_project/data/globalflow_instance.xlsx'
+EXCEL_FILE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'globalflow_instance.xlsx')
 OUTPUT_FILE = 'phase1/results/mincut_analysis.xlsx'
 PRODUCTS    = ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents']
 

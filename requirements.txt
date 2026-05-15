@@ -1,0 +1,10 @@
+# Python >= 3.10 required
+#
+# Note: the `xpress` package is distributed with FICO Xpress and installed
+# automatically when the suite is set up. Do not install it via pip separately
+# unless you have a valid Xpress licence.
+
+pandas==2.3.3
+openpyxl==3.1.5
+networkx==3.6.1
+xpress==9.7.1

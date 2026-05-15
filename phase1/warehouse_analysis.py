@@ -59,10 +59,7 @@ from itertools import combinations
 _EXCEL_CANDIDATES = [
     os.path.join(os.getcwd(), 'data', 'globalflow_instance.xlsx'),
     os.path.join(os.getcwd(), 'globalflow_instance.xlsx'),
-    os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                 'data', 'globalflow_instance.xlsx'),
-    '/Users/matteogalizia/Documents/GitHub/'
-    'MLSMM2155_transhipment_project/data/globalflow_instance.xlsx',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'globalflow_instance.xlsx'),
 ]
 EXCEL_FILE  = next((p for p in _EXCEL_CANDIDATES if os.path.exists(p)), None)
 if EXCEL_FILE is None:
