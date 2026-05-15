@@ -1,7 +1,7 @@
 """
 GlobalFlow Unified Visualizer
 ==============================
-Reads phase-1 baseline and all phase-2 scenario/strategy xlsx files,
+Reads phase-1 baseline and all phase-2 + S4 scenario/strategy xlsx files,
 then writes a single self-contained interactive HTML map.
 
 Usage
@@ -21,18 +21,19 @@ import pandas as pd
 INSTANCE_FILE = "data/globalflow_instance.xlsx"
 BASELINE_FILE = "phase1/results/baseline_solution.xlsx"
 PHASE2_DIR    = "phase2/results"
+S4_DIR        = "phase3/results"          
 OUTPUT_FILE   = sys.argv[1] if len(sys.argv) > 1 else "globalflow_map.html"
 
 PRODUCTS      = ["A_Fertilizers", "B_Semiconductors", "C_BatteryComponents"]
 SCENARIO_KEYS = ["T1", "T2", "T3", "S1", "S2", "S3"]
 STRATEGIES    = ["R", "A", "F"]
 
-# ── Load nodes ─────────────────────────────────────────────────────────────────
+# ── Load nodes ────────────────────────────────────────────────────────────────
 print("Loading instance data…")
 nodes_df = pd.read_excel(INSTANCE_FILE, sheet_name="Nodes")
 nodes = nodes_df.to_dict("records")
 
-# ── Solution loader ────────────────────────────────────────────────────────────
+# ── Solution loader ───────────────────────────────────────────────────────────
 def load_solution(path: str) -> dict:
     xl = pd.ExcelFile(path)
     result: dict = {
@@ -68,7 +69,7 @@ def load_solution(path: str) -> dict:
     return result
 
 
-# ── Load all data ──────────────────────────────────────────────────────────────
+# ── Load all data ─────────────────────────────────────────────────────────────
 print("Loading baseline…")
 baseline = load_solution(BASELINE_FILE)
 
@@ -77,12 +78,23 @@ scenarios: dict = {}
 for key in SCENARIO_KEYS:
     scenarios[key] = {}
     for strat in STRATEGIES:
-        path = os.path.join(PHASE2_DIR, f"scenario_ArcCosts_{key}", f"strategy_{strat}.xlsx")
+        path = os.path.join(PHASE2_DIR, f"scenario_ArcCosts_{key}",
+                            f"strategy_{strat}.xlsx")
         if os.path.exists(path):
             print(f"  {key}/{strat}")
             scenarios[key][strat] = load_solution(path)
 
-# ── Clean NaN for JSON ─────────────────────────────────────────────────────────
+print("Loading S4 (Suez crisis)…")
+scenarios["S4"] = {}
+for strat in STRATEGIES:
+    path = os.path.join(S4_DIR, f"S4_strategy_{strat}.xlsx")
+    if os.path.exists(path):
+        print(f"  S4/{strat}")
+        scenarios["S4"][strat] = load_solution(path)
+    else:
+        print(f"  [skip] S4/{strat} not found: {path}")
+
+# ── Clean NaN for JSON ────────────────────────────────────────────────────────
 def clean(obj):
     if isinstance(obj, dict):
         return {k: clean(v) for k, v in obj.items()}
@@ -90,16 +102,17 @@ def clean(obj):
         return [clean(v) for v in obj]
     if isinstance(obj, float) and math.isnan(obj):
         return None
-    # pandas / numpy scalars → plain Python types
     try:
         return obj.item()
     except AttributeError:
         return obj
 
-data_json = json.dumps(clean({"nodes": nodes, "baseline": baseline, "scenarios": scenarios}),
-                       ensure_ascii=False, default=str)
+data_json = json.dumps(
+    clean({"nodes": nodes, "baseline": baseline, "scenarios": scenarios}),
+    ensure_ascii=False, default=str,
+)
 
-# ── HTML template (no f-string; __DATA__ is replaced below) ───────────────────
+# ── HTML template ─────────────────────────────────────────────────────────────
 TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,7 +233,7 @@ input:checked + .sl:before { transform: translateX(16px); }
 
 <header>
   <h1>GlobalFlow &mdash; Network Visualization</h1>
-  <span>Phase 1 baseline &amp; Phase 2 disruption scenarios</span>
+  <span>Phase 1 baseline &bull; Phase 2 disruption scenarios &bull; S4 Suez crisis</span>
 </header>
 
 <div id="app">
@@ -231,8 +244,10 @@ input:checked + .sl:before { transform: translateX(16px); }
     <div class="sec-title">Case</div>
     <div class="card">
       <div class="radio-grp">
-        <label><input type="radio" name="case" value="baseline" checked> Baseline (Phase&nbsp;1)</label>
-        <label><input type="radio" name="case" value="scenario"> Scenario (Phase&nbsp;2)</label>
+        <label><input type="radio" name="case" value="baseline" checked>
+          Baseline (Phase&nbsp;1)</label>
+        <label><input type="radio" name="case" value="scenario">
+          Scenario (Phase&nbsp;2 / S4)</label>
       </div>
     </div>
   </div>
@@ -243,14 +258,21 @@ input:checked + .sl:before { transform: translateX(16px); }
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
 
       <div>
-        <div style="font-size:11px;color:#78909C;margin-bottom:4px">Disruption scenario</div>
+        <div style="font-size:11px;color:#78909C;margin-bottom:4px">
+          Disruption scenario
+        </div>
         <select id="scen-sel">
-          <option value="T1">T1 — Tariff shock (mild)</option>
-          <option value="T2">T2 — Tariff shock (medium)</option>
-          <option value="T3">T3 — Tariff shock (severe)</option>
-          <option value="S1">S1 — Supply shock (mild) &mdash; hub H3 removed</option>
-          <option value="S2">S2 — Supply shock (medium)</option>
-          <option value="S3">S3 — Supply shock (severe) &mdash; hub H3 removed</option>
+          <optgroup label="Phase 2 — Assigned scenarios">
+            <option value="T1">T1 — Tariff shock (+40% transatlantic/transpacific)</option>
+            <option value="T2">T2 — Energy crisis (sea +10%, road +20%)</option>
+            <option value="T3">T3 — Hub surcharge +30% (Q4 seasonal)</option>
+            <option value="S1">S1 — H3 Singapore closed (Taiwan Strait)</option>
+            <option value="S2">S2 — Korea–Europe corridor blocked</option>
+            <option value="S3">S3 — Combined: T2 + S1</option>
+          </optgroup>
+          <optgroup label="Phase 3 — Extended analysis">
+            <option value="S4">S4 — Suez Crisis / Red Sea (Houthi 2024)</option>
+          </optgroup>
         </select>
       </div>
 
@@ -269,7 +291,7 @@ input:checked + .sl:before { transform: translateX(16px); }
           </label>
           <label>
             <input type="checkbox" name="strat" value="F">
-            <b style="font-family:monospace">F</b> &mdash; Fight (full demand + emergency)
+            <b style="font-family:monospace">F</b> &mdash; Full redesign (greenfield)
           </label>
         </div>
       </div>
@@ -338,33 +360,31 @@ const PROD_LABEL = {
   B_Semiconductors:    'B — Semiconductors',
   C_BatteryComponents: 'C — Battery Components',
 };
-// Line dash per strategy (Plotly geo does support dash for SVG lines)
-const STRAT_DASH  = { R: 'solid',  A: 'dash',  F: 'dot'  };
-const STRAT_WIDTH = { R: 1.8,      A: 2.1,     F: 2.4    };
+const STRAT_DASH  = { R: 'solid', A: 'dash', F: 'dot'  };
+const STRAT_WIDTH = { R: 1.8,     A: 2.1,    F: 2.4    };
 const STRAT_LABEL = {
   R: 'R — Reroute',
   A: 'A — Adapt',
-  F: 'F — Fight',
+  F: 'F — Full redesign',
 };
 
 const NODE_CFG = {
-  SU:  { label: 'Supplier',            color: '#FF5722', symbol: 'square',  size: 10 },
-  HUB: { label: 'International Hub',   color: '#9C27B0', symbol: 'diamond', size: 14 },
-  WH:  { label: 'Regional Warehouse',  color: '#4CAF50', symbol: 'circle',  size: 9  },
-  CU:  { label: 'Customer',            color: '#607D8B', symbol: 'circle',  size: 7  },
+  SU:  { label: 'Supplier',           color: '#FF5722', symbol: 'square',  size: 10 },
+  HUB: { label: 'International Hub',  color: '#9C27B0', symbol: 'diamond', size: 14 },
+  WH:  { label: 'Regional Warehouse', color: '#4CAF50', symbol: 'circle',  size: 9  },
+  CU:  { label: 'Customer',           color: '#607D8B', symbol: 'circle',  size: 7  },
 };
 
-// Build node lookup
 const nodeMap = {};
 DATA.nodes.forEach(n => nodeMap[n.node_id] = n);
 
 // ── UI state ─────────────────────────────────────────────────────────
 const state = {
-  mode:        'baseline',
-  scenario:    'T1',
-  strategies:  ['R'],
-  products:    ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents'],
-  showEmg:     true,
+  mode:       'baseline',
+  scenario:   'T1',
+  strategies: ['R'],
+  products:   ['A_Fertilizers', 'B_Semiconductors', 'C_BatteryComponents'],
+  showEmg:    true,
 };
 
 // ── DOM ───────────────────────────────────────────────────────────────
@@ -441,12 +461,11 @@ function lineCoords(srcId, tgtId) {
   };
 }
 
-// ── Build Plotly traces ────────────────────────────────────────────────
+// ── Build Plotly traces ───────────────────────────────────────────────
 function buildTraces(solutions) {
   const traces = [];
 
   solutions.forEach(({ sol, strategy }) => {
-    // Collect emergency arc IDs for this solution
     const emgIds = new Set((sol.emergency_arcs || []).map(e => e.arc_id));
 
     // ── Flow traces (one per active product) ──
@@ -525,7 +544,6 @@ function buildTraces(solutions) {
   });
 
   // ── Node traces (always visible) ──
-  // Collect warehouse open/util across all active solutions
   const whOpen = {}, whUtil = {};
   solutions.forEach(({ sol }) => {
     (sol.warehouses || []).forEach(w => {
@@ -585,14 +603,16 @@ function buildTraces(solutions) {
   return traces;
 }
 
-// ── Build info box HTML ────────────────────────────────────────────────
+// ── Build info box HTML ───────────────────────────────────────────────
 function buildInfo(solutions) {
   if (!solutions.length) return 'No data for current selection.';
 
   let html = '';
   solutions.forEach(({ sol, strategy }) => {
     const s = sol.summary || {};
-    const label = strategy ? `Strategy <b>${STRAT_LABEL[strategy]}</b>` : '<b>Baseline</b>';
+    const label = strategy
+      ? `Strategy <b>${STRAT_LABEL[strategy]}</b>`
+      : '<b>Baseline</b>';
     const cost  = s['Logistics Cost ($)'] ?? s['Total Cost ($)'];
     const delta = s['ΔZ Disruption Cost ($)'];
     const pct   = s['ΔZ (%)'];
@@ -603,10 +623,13 @@ function buildInfo(solutions) {
     if (cost != null)  html += `Cost: <b>${fmtCost(cost)}</b><br>`;
     if (delta != null) {
       const sign = delta >= 0 ? '+' : '';
-      html += `ΔZ vs baseline: ${sign}${fmtCost(delta)} (${sign}${Number(pct).toFixed(1)}%)<br>`;
+      html += `ΔZ vs baseline: ${sign}${fmtCost(delta)} ` +
+              `(${sign}${Number(pct).toFixed(1)}%)<br>`;
     }
-    if (unmet != null && unmet > 0) html += `⚠ Unserved: <b>${unmet}</b> units<br>`;
-    if (emgActive.length)           html += `🚨 Emergency arcs active: <b>${emgActive.length}</b><br>`;
+    if (unmet != null && unmet > 0)
+      html += `⚠ Unserved: <b>${unmet}</b> units<br>`;
+    if (emgActive.length)
+      html += `🚨 Emergency arcs active: <b>${emgActive.length}</b><br>`;
     html += '<br>';
   });
   return html.trimEnd();
@@ -616,7 +639,8 @@ function buildInfo(solutions) {
 function buildTitle(solutions) {
   if (state.mode === 'baseline') {
     const cost = solutions[0]?.sol?.summary?.['Total Cost ($)'];
-    return 'GlobalFlow — Baseline Solution' + (cost ? `  |  ${fmtCost(cost)}` : '');
+    return 'GlobalFlow — Baseline Solution' +
+           (cost ? `  |  ${fmtCost(cost)}` : '');
   }
   const strats = state.strategies.join(' + ');
   const costs = solutions
@@ -625,11 +649,12 @@ function buildTitle(solutions) {
       return c != null ? `${strategy}: ${fmtCost(c)}` : null;
     })
     .filter(Boolean).join('  ');
-  return `GlobalFlow — Scenario ${state.scenario}  |  Strategy: ${strats}` +
+  return `GlobalFlow — Scenario ${state.scenario}` +
+         `  |  Strategy: ${strats}` +
          (costs ? `  |  ${costs}` : '');
 }
 
-// ── Render ─────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────
 function render() {
   const solutions = getActiveSolutions();
   const traces    = buildTraces(solutions);
@@ -639,7 +664,11 @@ function render() {
   Plotly.react('map', traces, {
     title: { text: buildTitle(solutions), x: 0.5, font: { size: 14 } },
     showlegend: true,
-    legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.88)', font: { size: 11 } },
+    legend: {
+      x: 0.01, y: 0.99,
+      bgcolor: 'rgba(255,255,255,0.88)',
+      font: { size: 11 },
+    },
     geo: {
       projection_type: 'natural earth',
       showland:        true,  landcolor:      '#F5F5F5',

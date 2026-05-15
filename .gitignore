@@ -23,9 +23,9 @@ __pycache__/
 *.xlsx
 # Keep the shared input dataset
 !data/globalflow_instance.xlsx
-strategy_A.xlsx
-strategy_R.xlsx
-strategy_F.xlsx
+phase1/results/
+phase2/results/
+phase3/results/
 
 # ── Excel temporary lock files ────────────────────────────────────────────────
 ~$*.xlsx
