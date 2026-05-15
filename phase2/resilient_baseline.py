@@ -72,8 +72,10 @@ EXCEL_FILE = os.environ.get('EXCEL_FILE') or _find([
     os.path.join(_CWD, 'globalflow_instance.xlsx'),
     os.path.join(os.path.dirname(__file__), '..', 'data', 'globalflow_instance.xlsx'),
 ])
+_RESULTS_DIR = os.path.join(os.path.dirname(__file__), 'results')
+os.makedirs(_RESULTS_DIR, exist_ok=True)
 OUTPUT_FILE = os.path.join(
-    os.environ.get('OUTPUT_DIR', _CWD), 'resilient_baseline.xlsx')
+    os.environ.get('OUTPUT_DIR', _RESULTS_DIR), 'resilient_baseline.xlsx')
 
 if not EXCEL_FILE:
     sys.exit("ERROR: globalflow_instance.xlsx not found. Set EXCEL_FILE env var.")
