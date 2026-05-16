@@ -40,6 +40,7 @@ cost structure, supplier base, and disruption exposure:
     sea and road transport; sensitive to both tariff and energy shocks.
 \end{description}
 
+
 \subsection*{Arcs and Cost Structure}
 
 Of the 317 arcs, 270 are \textit{always-active} ($A_{\text{always}}$, zero
@@ -49,6 +50,18 @@ Variable costs reflect distance, modal choice (air $\gg$ sea $>$ road), and
 product characteristics. Inter-zone tariff rates are applied multiplicatively
 on top of the baseline variable cost according to the bilateral zone matrix in
 \texttt{globalflow\_instance.xlsx}.
+
+\paragraph*{Problem classification.}
+The GlobalFlow design problem belongs to the class of
+Multi-Commodity Capacitated Fixed-Charge Network Design Problems (MC-CFCNDP).
+It is NP-hard in general: the binary facility-location
+and arc-activation decisions interact with continuous multi-commodity
+flows through shared-capacity constraints, making the LP relaxation
+generally fractional.
+The practical tractability of this instance ($|N|=59$, $|A|=317$,
+$|P|=3$) is confirmed empirically in Section~\ref{sec:phase1}:
+FICO Xpress solves the MIP to global optimality in under $0.1$\,s,
+reflecting a well-structured instance with tight LP–IP gaps.
 
 \begin{tcolorbox}[questionbox, title={Central Question}]
 \small\itshape

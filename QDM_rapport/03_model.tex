@@ -102,7 +102,6 @@ via arcs A006, A007, A008, and A011 respectively, creating a critical
 single point of failure in the East Asian corridor. Furthermore, the
 arc capacities of A008 (451 units) and A011 (403 units) fall below
 the individual supply of S6 and S9 (741 and 631 units respectively),
-rendering the baseline infeasible as formulated. We therefore increased
-the capacities of those two arcs to match their suppliers' supply,
-allowing the solver to find a feasible baseline solution.
+rendering the baseline infeasible as formulated. 
+We therefore apply an in-solver capacity relaxation, without modifying the instance file, for any supplier whose unique outgoing arc has insufficient capacity
 \end{tcolorbox}

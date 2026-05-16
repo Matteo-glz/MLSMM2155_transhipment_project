@@ -313,6 +313,20 @@ for SCENARIO_KEY in ALL_SCENARIO_KEYS:
             arcs_from[row['from_id']].add(a)
             arcs_into[row['to_id']].add(a)
 
+        _cap_overrides = {}
+        for _, _sup_row in supply_df.iterrows():
+            _s, _sup_vol = _sup_row['supplier_id'], _sup_row['supply']
+            _s_arcs = [a for a, src in arc_src.items()
+                       if src == _s and a not in removed_arc_ids]
+            if len(_s_arcs) == 1:               # single surviving arc
+                _a = _s_arcs[0]
+                if arc_cap[_a] < _sup_vol:      # cap below supply
+                    arc_cap[_a] = _sup_vol
+                    _cap_overrides[_a] = _sup_vol
+        if _cap_overrides:
+            print(f"  [data fix] Arc capacity raised to match supplier supply: "
+                  f"{_cap_overrides}")
+
         A_fixed  = {a for a in arc_src if arc_fc[a] > 0}   # optional arcs (need activation)
         A_always = {a for a in arc_src if arc_fc[a] == 0}  # always-on arcs
 
